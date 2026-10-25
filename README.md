@@ -8,7 +8,7 @@
 
 Built for **CASCADE ’26 · Theme 3 · Problem 3: The Attention Digital Twin**
 
-[Run it](RUN.md) · [Project context](docs/CONTEXT.md) · [Phone experience](docs/PHONE_EXPERIENCE.md) · [Door to the Future](docs/FUTURE_PEEK.md) · [Real notifications](docs/REAL_NOTIFICATIONS.md) · [Architecture](docs/ARCHITECTURE.md) · [Data & ML](docs/DATA_AND_ML.md) · [Mobile build](docs/MOBILE.md) · [API](docs/API.md)
+[Run it](RUN.md) · [Project context](docs/CONTEXT.md) · [Logic & formulas](docs/LOGIC_AND_FORMULAS.md) · [Psychology](docs/PSYCHOLOGY.md) · [Phone experience](docs/PHONE_EXPERIENCE.md) · [Door to the Future](docs/FUTURE_PEEK.md) · [Real notifications](docs/REAL_NOTIFICATIONS.md) · [Architecture](docs/ARCHITECTURE.md) · [Data & ML](docs/DATA_AND_ML.md) · [Mobile build](docs/MOBILE.md) · [API](docs/API.md)
 
 ![Parallel landing: the attention twin as a hologram head](docs/screenshots/landing-hero.jpg)
 
@@ -204,6 +204,8 @@ Parallel/
 ├─ README.md · RUN.md · CHANGELOG.md · CONTRIBUTING.md · run.sh · run.ps1
 ├─ docs/
 │  ├─ CONTEXT.md             ← start here: the whole project's context, decisions and gotchas
+│  ├─ LOGIC_AND_FORMULAS.md  every formula, transcribed from the code
+│  ├─ PSYCHOLOGY.md          notification manipulation, the research, and Parallel's counter-design
 │  ├─ PHONE_EXPERIENCE.md    every playful phone interaction, how it works, where it lives
 │  ├─ FUTURE_PEEK.md         Door to the Future + Texts from future you + the Gen Z backlog
 │  ├─ REAL_NOTIFICATIONS.md  running over real notifications: Android, iOS, desktop, permissions
@@ -247,6 +249,8 @@ The ordered plan is in **[docs/ROADMAP.md](docs/ROADMAP.md)**; the Gen Z feature
 | Doc | Read it when you want… |
 |---|---|
 | [docs/CONTEXT.md](docs/CONTEXT.md) | the full story: what exists, why it was built this way, conventions, gotchas, how to continue (also written for AI coding agents) |
+| [docs/LOGIC_AND_FORMULAS.md](docs/LOGIC_AND_FORMULAS.md) | every formula behind the numbers: the Monte Carlo chain, shrinkage, the decision rule, confidence, blending, evaluation, XP |
+| [docs/PSYCHOLOGY.md](docs/PSYCHOLOGY.md) | how apps use notifications to pull people in, the evidence, and how each Parallel feature counters it |
 | [docs/PHONE_EXPERIENCE.md](docs/PHONE_EXPERIENCE.md) | how each interactive phone component works and where its code is |
 | [docs/FUTURE_PEEK.md](docs/FUTURE_PEEK.md) | the Door to the Future spec, the comic system, future texts, the Gen Z backlog and art references |
 | [docs/REAL_NOTIFICATIONS.md](docs/REAL_NOTIFICATIONS.md) | how Parallel would sit on top of real notifications on Android, iOS and desktop |

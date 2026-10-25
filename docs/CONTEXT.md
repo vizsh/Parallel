@@ -10,6 +10,8 @@ This is the document to read before touching the code. It explains what Parallel
 Parallel is an **attention digital twin** built for CASCADE ’26 (Theme 3, Problem 3). For every notification it predicts the chain of events tapping would set off for *this* person (open → feed → rabbit hole → slow return), gives a cost in focus minutes with a range and a confidence, estimates the counterfactual (what happens if it's held), recommends allow / hold / digest, and checks itself against what really happened. On top of those numbers sits a deliberately playful, phone-first layer (swipe cards, a jar, doors onto comic futures, texts from future you) so the cost is *felt*, not just read.
 
 ## 2. Product principles (the rules every feature follows)
+The maths behind every number is in [LOGIC_AND_FORMULAS.md](LOGIC_AND_FORMULAS.md); the psychology behind every design choice is in [PSYCHOLOGY.md](PSYCHOLOGY.md).
+
 1. **Numbers are real, stories are comedy.** Every comic, text and card is generated *from* the model's numbers and says so (“an estimate, not a prophecy”). Never invent a number in the UI.
 2. **Triage, not blocking.** Research (Fitz et al. 2019) shows batching helps but switching notifications off raises anxiety. Parallel holds and batches; it never silently drops.
 3. **Your rules win.** Trusted senders always pass. Allowing a ping *on purpose* is a valid choice and earns XP too.
