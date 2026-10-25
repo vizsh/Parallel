@@ -108,3 +108,18 @@ Status against the 75-item backlog: ✅ built · 🟡 partial or simulated · �
 | ActivityWatch ingest fix (dedup, `tz_offset_min`, live segments) | ✅ | `POST /api/ingest/activitywatch` |
 | PWA + Capacitor Android/iOS, phone tab bar with More sheet | ✅ | `frontend/android`, `frontend/ios`, `public/sw.js` |
 | Android NotificationListener plugin | 🗺️ | see `docs/MOBILE.md` |
+
+## v0.3 additions (phone-first layer)
+| Feature | Status | Where |
+|---|---|---|
+| Haptic language, shake detection | ✅ (device check pending) | `lib/feel.ts` |
+| Swipe triage deck with Peek | ✅ | `components/SwipeDeck.tsx` |
+| Held-pings jar (tap/shake to pour) | ✅ | `components/HeldJar.tsx` |
+| Drag to fork, energy battery | ✅ | `components/ForkDrag.tsx`, `components/EnergyBattery.tsx` |
+| Guess before reveal, raining futures, dominoes | ✅ | `components/GuessGame.tsx`, `FuturesRain.tsx`, `Dominoes.tsx` |
+| Holo badge cards + binder | ✅ (device storage) | `components/BadgeCard.tsx`, `lib/cards.ts` |
+| Inbox receipt | ✅ | `components/Receipt.tsx` |
+| Door to the Future + share poster | ✅ | `components/FuturePeek.tsx`, `components/ComicArt.tsx`, `lib/future.ts` |
+| Texts from future you | ✅ (device storage; native notification pending device test) | `lib/futureTexts.ts`, `components/FutureTexts.tsx` |
+| Phone demo animation | ✅ | `components/PhoneDemo.tsx`, `/demo` |
+| Android NotificationListener plugin | 🗺️ | `docs/REAL_NOTIFICATIONS.md` |

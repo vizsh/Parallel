@@ -25,6 +25,8 @@ Parallel ships to phones from the **same React codebase**, in two ways:
 A fully installable, offline PWA needs HTTPS, so deploy it (Path 3) for a store-like install.
 
 ### Path 2: a real Android APK (Android Studio)
+> **Why the Android SDK is required:** an APK is a compiled native package. Gradle needs Android's platform library (`android.jar` for the target API), the build tools (`aapt2` to package resources, `d8` to produce DEX bytecode) and signing tools. Java alone can't produce one. If you don't want the SDK locally, build the APK in CI (a GitHub Actions job with `actions/setup-java` and `android-actions/setup-android`, then `./gradlew assembleDebug`) and download it as an artifact.
+
 1. Install [Android Studio](https://developer.android.com/studio). It bundles Java (JDK 17) and the Android SDK.
 2. Tell the app where the API lives, then build and open the native project:
    ```bash
@@ -50,6 +52,7 @@ Run `cd frontend && npm run ios`. In Xcode, choose your Apple ID team under *Sig
 ## The app UI on phones
 - **Bottom tab bar:** Today, Multiverse, Smart inbox, Coach, More. **More** opens a sheet with every other page.
 - **Notched phones:** safe-area padding (`env(safe-area-inset-*)`) and `viewport-fit=cover`.
+- **Phone-first interactions:** swipe deck, jar, fork drag, doors, future texts and more; see **[PHONE_EXPERIENCE.md](PHONE_EXPERIENCE.md)**.
 - **Native touches:**
   - haptic feedback on every confirmation toast
   - local reminders at your "best moments to check held pings" (Today page, native only)
@@ -94,6 +97,7 @@ In `capacitor.config.ts`, uncomment `server.url` and set it to `http://<your-LAN
 The API reports the same matrix at `GET /api/platform/capabilities`.
 
 ## Next step: Android notification listener plugin
+The full specification (pipeline, permissions, the buzz problem, OEM quirks, Play policy, code skeleton) is in **[REAL_NOTIFICATIONS.md](REAL_NOTIFICATIONS.md)**. Summary:
 This is the one native piece that makes the twin act on real notifications. Outline:
 1. Create a Capacitor plugin `ParallelListener` with a Java class extending `NotificationListenerService`.
 2. In `onNotificationPosted(sbn)`:

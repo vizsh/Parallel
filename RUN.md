@@ -13,17 +13,22 @@ Two processes run side by side:
 
 ---
 
+## Get the code
+```bash
+git clone https://github.com/vizsh/Parallel.git
+```
+
 ## Option A — one command
 
 ### macOS / Linux
 ```bash
-cd parallel
+cd Parallel
 ./run.sh
 ```
 
 ### Windows (PowerShell)
 ```powershell
-cd parallel
+cd Parallel
 powershell -ExecutionPolicy Bypass -File .\run.ps1
 ```
 
@@ -42,7 +47,7 @@ Later runs start in seconds. When it's ready, open **http://localhost:5180**.
 
 **macOS / Linux**
 ```bash
-cd parallel/backend
+cd Parallel/backend
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
@@ -53,7 +58,7 @@ python -m uvicorn app.main:app --port 8787 --reload
 
 **Windows (PowerShell)**
 ```powershell
-cd parallel\backend
+cd Parallel\backend
 py -3 -m venv .venv
 .\.venv\Scripts\Activate.ps1
 pip install -r requirements.txt
@@ -64,7 +69,7 @@ python -m uvicorn app.main:app --port 8787 --reload
 
 **Windows (Command Prompt)**
 ```bat
-cd parallel\backend
+cd Parallel\backend
 py -3 -m venv .venv
 .venv\Scripts\activate.bat
 pip install -r requirements.txt
@@ -77,7 +82,7 @@ Check that it's up: open http://127.0.0.1:8787/api/health. It should show `{"ok"
 
 ### 2. Frontend (new terminal, same on every OS)
 ```bash
-cd parallel/frontend
+cd Parallel/frontend
 npm install
 npm run dev -- --port 5180
 ```

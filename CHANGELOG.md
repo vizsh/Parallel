@@ -1,5 +1,24 @@
 # Changelog
 
+## v0.3.0 — phone-first, Gen Z layer
+### Added
+- **Haptic language** (`lib/feel.ts`): one distinct feel per kind of choice; native haptics, `navigator.vibrate` fallback, shake detection, an off switch.
+- **Smart inbox:** swipe triage deck (right allow, left hold, up digest, down noise), Peek on every card, a physics **held-pings jar** you tap or shake to pour, and a **till receipt** when the inbox is cleared.
+- **Multiverse:** **guess before reveal** (You vs Twin vs Reality), **raining futures** histogram, **dominoes** for Universe A's chain, **drag to fork**, **holo badge cards** with a 12-card binder.
+- **Today:** **energy battery** check-in, the jar for check moments, **Texts from future you** (timed to the twin's predicted cost; local notifications in the native app).
+- **Door to the Future:** two doors per ping opening onto four-panel comics drawn in SVG from the twin's numbers, ending on *The Scrollfather* or *Main Character*, with a shareable 1080×1920 poster and “choose this future”.
+- **`/demo`:** a self-playing phone showing a notification landing and Parallel working on top of it; `?clean=1` recording mode; linked from the Smart inbox.
+- **Docs:** README rewritten; new `docs/CONTEXT.md`, `docs/PHONE_EXPERIENCE.md`, `docs/FUTURE_PEEK.md`, `docs/REAL_NOTIFICATIONS.md`.
+
+### Fixed
+- `python -m ml.train` crashed on Windows (`UnicodeEncodeError`): training outputs are now written as UTF-8.
+- The coach crashed (`KeyError: 'ask'`) whenever the twin abstained; it now tells you to decide yourself, in all four languages.
+
+### Known limits
+- Haptics, shake, gyro tilt, native sharing and future-text notifications are not yet verified on a physical phone; shake and tilt need HTTPS or the native app.
+- Badge cards and future texts are stored on the device only.
+- The inbox still uses sample pings; the Android listener is specified in `docs/REAL_NOTIFICATIONS.md`, not built.
+
 ## v0.2.0 — routine-aware twin, mobile app, brain-first landing
 ### Added
 - **7-step onboarding:**
