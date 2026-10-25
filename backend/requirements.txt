@@ -9,3 +9,5 @@ scikit-learn>=1.4
 joblib>=1.3
 pytest>=8.0
 httpx>=0.27
+# optional: lets the coach answer with Claude when ANTHROPIC_API_KEY is set (falls back to the built-in engine)
+anthropic>=2.3

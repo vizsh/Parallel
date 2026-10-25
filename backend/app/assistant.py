@@ -8,19 +8,37 @@ assistant never invents a number the model didn't produce.
 from __future__ import annotations
 
 import re
+from datetime import date, timedelta
 
 from .twin import Twin, fmt_h
 
 LANGS = ("en", "hi", "mr", "es")
 
 INTENTS = {
-    "simulate": ["allow", "should i", "open", "notification", "ping", "check", "अनुमति", "खोलूं", "खोलू", "नोटिफिकेशन",
-                 "उघडू", "सूचना", "permitir", "abrir", "notificación", "debería"],
-    "best_time": ["best time", "focus best", "when", "golden", "peak", "कब", "सबसे अच्छा", "केव्हा", "कधी", "cuándo", "mejor hora"],
+    "greet": ["hi", "hello", "hey", "yo", "sup", "good morning", "good evening", "namaste", "नमस्ते", "नमस्कार", "hola"],
+    "thanks": ["thanks", "thank you", "thx", "ty", "appreciate", "धन्यवाद", "शुक्रिया", "gracias"],
+    "capabilities": ["what can you do", "help me", "help", "what do you do", "who are you", "how to use"],
+    "simulate": ["allow", "should i open", "should i check", "should i reply", "open it", "notification", "ping", "अनुमति", "खोलूं", "खोलू",
+                 "नोटिफिकेशन", "उघडू", "सूचना", "permitir", "abrir", "notificación", "debería abrir"],
+    "compare": [" vs ", "versus", "compare", "worse", "better than", "which is worse"],
+    "why": ["why", "how come", "reason", "explain", "क्यों", "por qué"],
+    "now": ["right now", "what should i do", "should i study", "should i work", "start now", "focus now", "can i focus", "now"],
+    "plan": ["plan", "schedule", "tonight", "this evening", "tomorrow", "my day", "routine", "timetable"],
+    "deadline": ["exam", "deadline", "test", "assignment", "submission", "due", "परीक्षा", "examen"],
+    "best_time": ["best time", "focus best", "when do i focus", "golden", "peak", "productive", "कब", "सबसे अच्छा", "केव्हा", "कधी", "cuándo", "mejor hora"],
     "distraction": ["distract", "biggest", "worst app", "which app", "breaks my", "ध्यान भटक", "कौन सा ऐप", "कोणते ॲप", "distrae", "qué app"],
-    "fatigue": ["tired", "fatigue", "break", "exhausted", "थक", "आराम", "ब्रेक", "थकलो", "cansad", "descanso"],
-    "today": ["today", "how am i", "doing", "status", "आज", "कैसा", "कसा", "hoy", "cómo voy"],
-    "recommend": ["recommend", "suggest", "improve", "tips", "what should", "सुझाव", "सल्ला", "सुधार", "recomienda", "consejo"],
+    "doomscroll": ["doomscroll", "scrolling", "addicted", "can't stop", "cant stop", "reels", "shorts", "stop using", "quit", "rabbit hole"],
+    "time_lost": ["how much time", "time lost", "wasted", "lose", "lost", "saved", "how many minutes", "this week", "debt"],
+    "fatigue": ["tired", "fatigue", "break", "exhausted", "sleepy", "drained", "थक", "आराम", "ब्रेक", "थकलो", "cansad", "descanso"],
+    "sleep": ["sleep", "late night", "bed", "insomnia", "night guard", "midnight", "नींद", "झोप", "dormir"],
+    "stress": ["stressed", "stress", "anxious", "anxiety", "overwhelmed", "burnout", "burnt out", "sad", "panic"],
+    "aura": ["aura", "xp", "level", "streak", "points", "score", "fate", "main character", "npc"],
+    "held": ["held", "waiting", "jar", "queue", "digest", "what did i miss", "missed", "pending"],
+    "privacy": ["privacy", "private", "my data", "read my messages", "store", "delete my", "safe", "track me", "spy"],
+    "method": ["how do you", "how does", "how does this work", "predict", "accurate", "accuracy", "trust", "model", "algorithm", "monte carlo"],
+    "rules": ["vip", "always let", "never let", "mute", "block", "whitelist", "rule"],
+    "today": ["today", "how am i", "doing", "status", "progress", "आज", "कैसा", "कसा", "hoy", "cómo voy"],
+    "recommend": ["recommend", "suggest", "improve", "tips", "advice", "सुझाव", "सल्ला", "सुधार", "recomienda", "consejo"],
     "learned": ["learn", "know about me", "what do you know", "सीखा", "शिकलास", "aprendiste", "sabes de mí"],
 }
 
@@ -100,34 +118,211 @@ PERSONA_LINE = {
 }
 
 
+
+
 def detect(text: str, table: dict) -> str | None:
-    t = text.lower()
-    best, score = None, 0
+    """Keyword scoring. Multi-word phrases count double so 'breaks my focus' beats 'break'."""
+    t = " " + text.lower() + " "
+    best, score = None, 0.0
     for key, words in table.items():
-        s = sum(1 for w in words if re.search(r"(?<!\w)" + re.escape(w.lower()), t))
+        s = sum((2.0 if " " in w.strip() else 1.0) for w in words
+                if re.search(r"(?<!\w)" + re.escape(w.lower().strip()) + (r"(?!\w)" if len(w.strip()) <= 3 else ""), t))
         if s > score:
             best, score = key, s
     return best
 
 
-def answer(twin: Twin, text: str, lang: str, persona: str, stats: dict, vip: set) -> dict:
+def detect_all(text: str, table: dict) -> list[str]:
+    """Every category mentioned, in the order it appears ('instagram vs youtube')."""
+    t = text.lower()
+    hits = []
+    for key, words in table.items():
+        pos = [m.start() for w in words for m in re.finditer(r"(?<!\w)" + re.escape(w.lower()), t)]
+        if pos:
+            hits.append((min(pos), key))
+    return [k for _, k in sorted(hits)]
+
+
+# ---------------------------------------------------------------- facts (shared with the Claude coach)
+def facts(twin: Twin, stats: dict, ctx: dict) -> dict:
+    """Everything the coach may say, computed by our own models. Nothing else gets quoted."""
+    from . import routine
+    now = twin.context_now()
+    fp = twin.fingerprint()
+    b = fp["best_window"]
+    apps = [a for a in twin.apps() if a["focus_breaks_per_day"] > 0][:3]
+    profile = twin.profile
+    dl = routine.deadline_pressure(profile) if profile else None
+    moments = routine.check_moments(profile, golden=(b["start"], b["end"]))
+    today = date.today()
+    week = {(today - timedelta(days=i)).isoformat() for i in range(1, 8)}
+    opened_week = [n for n in twin.notifs if n["day"] in week and n["opened"]]
+    lost = sum(n["cost_min"] for n in opened_week)
+    recs = twin.recommendations(ctx.get("vip") or set())[:3]
+    p = routine.merge(profile)
+    return dict(
+        persona=ctx.get("persona"),
+        now=dict(time=fmt_h(now["hour"]), focus_capacity_pct=round(now["focus_capacity"] * 100), fatigue_pct=round(now["fatigue"] * 100),
+                 task=now["task"], block=now["block"], night_guard_on=routine.night_guard_active(profile, now["hour"])),
+        golden_hours=dict(start=fmt_h(b["start"]), end=fmt_h(b["end"])), fatigue_onset=fmt_h(fp["fatigue_onset"]),
+        bed=fmt_h(float(p["bed"])), wake=fmt_h(float(p["wake"])),
+        deadline=dl, check_moments=[dict(at=m["at"], reason=m["reason"]) for m in moments],
+        top_distractions=[dict(app=a["app"], breaks_per_day=a["focus_breaks_per_day"], cost_per_break_min=a["avg_cost_min"],
+                               rabbit_hole_pct=round(a["rabbit_rate"] * 100)) for a in apps],
+        last_7_days=dict(pings_opened=len(opened_week), minutes_lost=round(lost), per_day=round(lost / 7)),
+        with_parallel=dict(decisions=stats["decisions"], held=stats["held_back"], minutes_protected=stats["minutes_saved"],
+                           xp=stats["xp"], level=stats["level"], aura_week=stats.get("aura", {}).get("week"),
+                           aura_tier=stats.get("aura", {}).get("tier"), fate_today=stats.get("fate", {}).get("label")),
+        held_now=ctx.get("held", 0),
+        recommendations=[dict(title=r["title"], minutes_per_day=r["impact_min"], evidence=r["evidence"]) for r in recs],
+        learned=dict(days=fp["days_learned"], events=fp["events_learned"]),
+        vip_categories=sorted(ctx.get("vip") or []),
+    )
+
+
+def _sim(twin: Twin, cat: str) -> dict:
+    """The twin's answer for this ping right now, with the late-night guard applied as the inbox applies it."""
+    from . import routine
+    from .personas import CATEGORIES
+    c = twin.context_now()
+    r = twin.simulate(cat, c["hour"], c["depth"], 35, c["fatigue"], c["task"], 600)
+    importance = twin.learned_importance.get(cat, CATEGORIES[cat]["importance"])
+    if importance < 0.75 and r["recommendation"] != "delay" and routine.night_guard_active(twin.profile, c["hour"]):
+        r["recommendation"] = "delay"
+        r["why"] = "Late-night guard is on: it's past your wind-down, so this waits for your morning digest."
+    return r
+
+
+FOLLOW = {
+    "simulate": ["Why?", "What about YouTube?", "What's waiting in my jar?"],
+    "compare": ["Why is that one worse?", "When do I focus best?"],
+    "why": ["What should I do right now?", "How accurate are you?"],
+    "now": ["Plan my evening", "Am I tired?"],
+    "plan": ["What should I do right now?", "How much time did I lose this week?"],
+    "deadline": ["Plan my evening", "Which app distracts me most?"],
+    "best_time": ["Plan my evening", "Which app distracts me most?"],
+    "distraction": ["How do I stop doomscrolling?", "How much time did I lose this week?"],
+    "doomscroll": ["What's my aura?", "How does late-night guard work?"],
+    "time_lost": ["What do you recommend?", "What's my aura?"],
+    "fatigue": ["What should I do right now?", "When do I focus best?"],
+    "sleep": ["How much time did I lose this week?", "Plan tomorrow"],
+    "stress": ["What should I do right now?", "What's waiting in my jar?"],
+    "aura": ["How much time did I lose this week?", "What do you recommend?"],
+    "held": ["Should I open this Instagram like?", "Plan my evening"],
+    "privacy": ["How does this work?", "What do you know about me?"],
+    "method": ["What do you know about me?", "Should I open this YouTube video?"],
+    "rules": ["What's waiting in my jar?", "Should I open this Instagram like?"],
+    "today": ["What's my aura?", "What do you recommend?"],
+    "recommend": ["How much time did I lose this week?", "Plan my evening"],
+    "learned": ["How accurate are you?", "What do you recommend?"],
+    "greet": ["What should I do right now?", "Should I open this Instagram like?"],
+    "thanks": ["Plan my evening", "What's my aura?"],
+    "capabilities": ["Should I open this Instagram like?", "What should I do right now?", "How much time did I lose this week?"],
+    "help": ["Should I open this Instagram like?", "What should I do right now?", "Which app distracts me most?"],
+}
+
+
+def answer(twin: Twin, text: str, lang: str, persona: str, stats: dict, vip: set, ctx: dict | None = None) -> dict:
+    """Rule engine. `ctx` carries the conversation (history with intent/category), the held count and VIPs.
+    Intents outside the original seven answer in English; the Claude coach covers every language."""
+    ctx = ctx or {}
     lang = lang if lang in LANGS else "en"
-    L = T[lang]
+    L, E = T[lang], T["en"]
     pline = PERSONA_LINE.get(persona, PERSONA_LINE["developer"])[lang]
-    cat = detect(text, CATEGORY_WORDS)
+    history = ctx.get("history") or []
+    last_cat = next((h.get("category") for h in reversed(history) if h.get("category")), None)
+    last_intent = next((h.get("intent") for h in reversed(history) if h.get("role") == "twin" and h.get("intent") not in (None, "help")), None)
+    cats = detect_all(text, CATEGORY_WORDS)
+    cat = cats[0] if cats else None
     intent = detect(text, INTENTS)
-    if cat and intent in (None, "simulate", "today"):
+    words = len(text.split())
+    # follow-ups: "and youtube?" after a simulation, "why?" after anything about a ping
+    if len(cats) >= 2 and intent in (None, "compare", "simulate", "distraction"):
+        intent = "compare"
+    elif cat and intent in (None, "simulate", "today", "now", "greet"):
         intent = "simulate"
-    card = None
-    if intent == "simulate":
-        cat = cat or "social_like"
-        ctx = twin.context_now()
-        r = twin.simulate(cat, ctx["hour"], ctx["depth"], 35, ctx["fatigue"], ctx["task"], 600)
-        rec = "allow" if cat in vip else r["recommendation"]
+    elif not intent and words <= 4 and last_intent:
+        intent = last_intent
+    card, used_cat = None, cat
+
+    if intent == "greet":
+        c0 = twin.context_now()
+        msg = (f"Hey! It's {fmt_h(c0['hour'])}, your focus capacity is around {round(c0['focus_capacity'] * 100)}% and fatigue "
+               f"{round(c0['fatigue'] * 100)}%. Ask me about any ping before you tap it, or what to do right now.")
+    elif intent == "thanks":
+        msg = "Anytime. Go protect that focus. I'll be here when the next ping shows up."
+    elif intent == "capabilities":
+        msg = ("I'm your attention twin. I can price any notification in focus minutes before you open it, tell you when you focus best, "
+               "which app drains you most, what's waiting in your jar, how much time pings cost you this week, and plan your evening "
+               "around your schedule.")
+    elif intent == "simulate":
+        used_cat = cat or last_cat or "social_like"
+        r = _sim(twin, used_cat)
+        rec = "allow" if used_cat in vip else r["recommendation"]
         msg = L["sim"].format(label=r["label"].lower(), p=round(r["allow"]["p_open"] * 100), cost=r["allow"]["cost_p50"],
                               lo=r["allow"]["cost_p10"], hi=r["allow"]["cost_p90"], d=r["delay"]["cost_expected"],
                               rec=L["rec_words"][rec], why=r["why"] if lang == "en" else "")
-        card = dict(type="simulate", category=cat)
+        card = dict(type="simulate", category=used_cat)
+    elif intent == "compare":
+        pair = (cats + [c for c in [last_cat, "video_reco"] if c and c not in cats])[:2]
+        rs = sorted((_sim(twin, k) for k in pair), key=lambda r: -r["allow"]["cost_expected"])
+        worse, better = rs[0], rs[-1]
+        msg = (f"Right now {worse['app']} ({worse['label'].lower()}) is the bigger trap: ~{worse['allow']['cost_expected']} min expected, "
+               f"{round(worse['allow']['p_rabbit_hole'] * 100)}% rabbit-hole odds. {better['app']} costs ~{better['allow']['cost_expected']} min. "
+               f"If you only open one, open {better['app']}.")
+        used_cat = worse["category"]
+        card = dict(type="simulate", category=used_cat)
+    elif intent == "why":
+        used_cat = cat or last_cat
+        if not used_cat:
+            msg = "Why what? Ask about a specific ping, like 'why hold Instagram?', and I'll show you what's driving it."
+        else:
+            r = _sim(twin, used_cat)
+            if r["why"].startswith("Late-night guard"):
+                return dict(reply=r["why"] + " That's a rule, not a guess: switch it off in Settings if you want late pings.", intent="why", lang=lang,
+                            card=None, category=used_cat, suggest=FOLLOW["sleep"], source="rules")
+            fx = [f for f in r["factors"] if abs(f["effect"]) >= 0.05][:2]
+            push = "; ".join(f"{f['factor']} {'pushes you to open it' if f['effect'] > 0 else 'protects you'}" for f in fx) or "nothing unusual about this moment"
+            msg = (f"{r['why']} What's driving it right now: {push}. That's from {r['similar_events']} similar moments "
+                   f"in your history, so I'm {round(r['confidence'] * 100)}% sure.")
+            card = dict(type="simulate", category=used_cat)
+    elif intent == "now":
+        f = facts(twin, stats, ctx)
+        n = f["now"]
+        nxt = f["check_moments"][0] if f["check_moments"] else None
+        if n["night_guard_on"]:
+            msg = (f"It's {n['time']}, past your wind-down. Honestly? Sleep beats anything I could suggest. "
+                   "Late-night guard is holding non-urgent pings till morning.")
+        elif n["block"]:
+            msg = f"You're in {n['block']['label']} until {n['block']['until']}. Stay in it; I'm holding low-value pings until then."
+        elif n["fatigue_pct"] > 60:
+            msg = (f"Fatigue is ~{n['fatigue_pct']}%. Take a real 10-minute break first, then do something light. "
+                   f"Save hard work for {f['golden_hours']['start']}.")
+        elif n["focus_capacity_pct"] >= 60:
+            msg = f"Good window: focus capacity ~{n['focus_capacity_pct']}%. Start your hardest task now and park your phone face-down."
+        else:
+            msg = (f"Focus capacity is only ~{n['focus_capacity_pct']}% right now. Do admin, replies or revision; "
+                   f"your golden hours start at {f['golden_hours']['start']}.")
+        if nxt and not n["night_guard_on"]:
+            msg += f" Next check moment: {nxt['at']} ({nxt['reason'].lower()})."
+    elif intent == "plan":
+        f = facts(twin, stats, ctx)
+        parts = [f"Hard work in your golden hours, {f['golden_hours']['start']}–{f['golden_hours']['end']}."]
+        if f["check_moments"]:
+            parts.append("Check pings at " + ", ".join(m["at"] for m in f["check_moments"][:3]) + ".")
+        if f["deadline"]:
+            parts.append(f"{f['deadline']['title']} is in {f['deadline']['days_left']} day(s), so I'm holding more than usual.")
+        parts.append(f"Lighter tasks after {f['fatigue_onset']}, and wind down by {f['bed']}.")
+        msg = " ".join(parts)
+        card = dict(type="fingerprint")
+    elif intent == "deadline":
+        f = facts(twin, stats, ctx)
+        if f["deadline"]:
+            d = f["deadline"]
+            msg = (f"{d['title']} is in {d['days_left']} day(s). I've lowered my hold threshold, so more pings wait until your blocks end. "
+                   f"Put revision in {f['golden_hours']['start']}–{f['golden_hours']['end']}.")
+        else:
+            msg = "You haven't added a deadline. Add your next exam or submission in Settings and I'll get stricter as it gets close."
     elif intent == "best_time":
         fp = twin.fingerprint()
         b = fp["best_window"]
@@ -135,13 +330,62 @@ def answer(twin: Twin, text: str, lang: str, persona: str, stats: dict, vip: set
         card = dict(type="fingerprint")
     elif intent == "distraction":
         a = next((a for a in twin.apps() if a["focus_breaks_per_day"] > 0), None)
-        msg = L["distract"].format(app=a["app"], n=a["focus_breaks_per_day"], c=a["avg_cost_min"], pct=round(a["rabbit_rate"] * 100))
+        msg = L["distract"].format(app=a["app"], n=a["focus_breaks_per_day"], c=a["avg_cost_min"], pct=round(a["rabbit_rate"] * 100)) if a else E["help"]
         card = dict(type="apps")
+    elif intent == "doomscroll":
+        from .personas import app_for
+        apps = [a for a in twin.apps() if a["focus_breaks_per_day"] > 0 and a["rabbit_rate"] > 0]
+        want = app_for(cat, persona) if cat else None
+        a = next((a for a in apps if a["app"] == want), apps[0] if apps else None)
+        lead = (f"Your data says {a['app']} is the slot machine: {round(a['rabbit_rate'] * 100)}% of quick checks turn into ~{a['avg_cost_min']} min. "
+                if a else "")
+        msg = (lead + "Don't white-knuckle it. Let me hold its pings until your check moments (they arrive in one batch, so nothing's missed), "
+               "keep late-night guard on, and peek through the door before you tap. Batching beats going cold turkey.")
+        card = dict(type="apps")
+    elif intent == "time_lost":
+        f = facts(twin, stats, ctx)
+        w = f["last_7_days"]
+        msg = (f"Last 7 days: {w['pings_opened']} opened pings cost you about {w['minutes_lost']} focus minutes (~{w['per_day']} a day). "
+               f"With me so far you've protected {f['with_parallel']['minutes_protected']} min across {f['with_parallel']['decisions']} decisions.")
+        card = dict(type="recommendations")
     elif intent == "fatigue":
-        ctx = twin.context_now()
+        c0 = twin.context_now()
         fp = twin.fingerprint()
-        msg = L["fatigue"].format(f=round(ctx["fatigue"] * 100), onset=fmt_h(fp["fatigue_onset"]),
-                                  advice=L["fatigue_hi"] if ctx["fatigue"] > 0.5 else L["fatigue_lo"])
+        msg = L["fatigue"].format(f=round(c0["fatigue"] * 100), onset=fmt_h(fp["fatigue_onset"]),
+                                  advice=L["fatigue_hi"] if c0["fatigue"] > 0.5 else L["fatigue_lo"])
+    elif intent == "sleep":
+        f = facts(twin, stats, ctx)
+        on = f["now"]["night_guard_on"]
+        msg = (f"Your bedtime is {f['bed']}. Late-night guard {'is holding pings right now' if on else 'kicks in 30 minutes before that'}: "
+               "only VIPs and urgent things get through, the rest wait for your morning digest. Late nights are when your rabbit holes run longest.")
+    elif intent == "stress":
+        c0 = twin.context_now()
+        msg = ("That sounds like a lot. Let's shrink it: hold everything that isn't from your VIPs for the next hour, so it's just you and one task. "
+               f"Your fatigue estimate is ~{round(c0['fatigue'] * 100)}%, so a short walk or some water first might help. "
+               "And if it's more than a busy day, talk to someone you trust.")
+    elif intent == "aura":
+        au, fa = stats.get("aura", {}), stats.get("fate", {})
+        msg = (f"Aura this week: {au.get('week', 0)} ({au.get('tier', 'Side quest')}). {au.get('line', '')} "
+               f"Today's fate meter: {fa.get('label', 'Plot undecided')}. Holds earn up to +500, cheap on-purpose opens +50, "
+               "honest reality checks +100, a confirmed doomscroll −1000.")
+    elif intent == "held":
+        held = ctx.get("held", 0)
+        f = facts(twin, stats, ctx)
+        nxt = f["check_moments"][0]["at"] if f["check_moments"] else "your next break"
+        msg = (f"{held} ping{'s' if held != 1 else ''} waiting in your jar. They'll come back together at {nxt}, or pour the jar in the inbox any time."
+               if held else "Your jar is empty. Nothing is waiting on you.")
+    elif intent == "privacy":
+        msg = ("I only learn from metadata: which app, what kind of ping, when, and what you decided. I never store message text or window titles. "
+               "You can pause learning, export everything or delete it all in Settings.")
+    elif intent == "method":
+        acc = twin.accuracy()
+        msg = ("For each ping I estimate the chance you open it and the chance it turns into a rabbit hole, simulate 2,000 possible futures, "
+               f"and compare with what holding costs (from randomized holdouts). On your history I'm {round(acc['improvement'] * 100)}% better "
+               f"than a generic rule, and {round(acc['interval_coverage'] * 100)}% of real costs land inside my range.")
+        card = dict(type="accuracy")
+    elif intent == "rules":
+        msg = ("Your rules always win. In Settings or the inbox you can mark people and categories as VIP (always through), "
+               "send a category to the digest, or mute it. VIPs I never hold.")
     elif intent == "recommend":
         r = twin.recommendations(vip)[0]
         msg = L["rec"].format(t=r["title"], i=r["impact_min"], ev=r["evidence"])
@@ -154,5 +398,8 @@ def answer(twin: Twin, text: str, lang: str, persona: str, stats: dict, vip: set
     elif intent == "today":
         msg = L["today"].format(d=stats["decisions"], m=stats["minutes_saved"], lvl=stats["level"], xp=stats["xp"], persona="")
     else:
-        msg = L["help"]
-    return dict(reply=msg.strip(), intent=intent or "help", lang=lang, card=card)
+        intent = None
+        msg = ("I'm best at your attention: try 'should I open this YouTube video?', 'what should I do right now?', "
+               "'how much time did I lose this week?' or 'plan my evening'.") if words > 3 else L["help"]
+    return dict(reply=msg.strip(), intent=intent or "help", lang=lang, card=card, category=used_cat,
+                suggest=FOLLOW.get(intent or "help", FOLLOW["help"]), source="rules")

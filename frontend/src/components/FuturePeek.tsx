@@ -5,6 +5,7 @@ import { DoorOpen, Pause, RotateCcw, Share2, X } from 'lucide-react'
 import { ComicPoster, PanelArt, PH, PW } from './ComicArt'
 import { buildFutures, type Ending, type FutureInput } from '@/lib/future'
 import { feel } from '@/lib/feel'
+import Xray from './Xray'
 import { toast } from '@/lib/hooks'
 
 type Side = 'a' | 'b'
@@ -15,11 +16,17 @@ const DOOR = {
   b: { label: 'If you hold', sub: 'it’s giving main character', light: 'radial-gradient(circle at 50% 40%, #ffffff 0%, #fff2a8 35%, #9ff5d6 70%, #1aa37e 100%)', leaf: '#e9e1cf', trim: '#3ee6b5', emoji: '😇' },
 } as const
 
-function Door({ side, opening, seen, onOpen }: { side: Side; opening: boolean; seen: boolean; onOpen: () => void }) {
+function Door({ side, opening, seen, onOpen, onPeek }: { side: Side; opening: boolean; seen: boolean; onOpen: () => void; onPeek: (on: boolean) => void }) {
   const d = DOOR[side]
   const reduce = useReducedMotion()
+  // Peephole: press and hold to look through the keyhole without opening the door.
+  const hold = useRef(0), peeked = useRef(false)
+  const startHold = () => { peeked.current = false; window.clearTimeout(hold.current); hold.current = window.setTimeout(() => { peeked.current = true; feel('tick'); onPeek(true) }, 420) }
+  const endHold = () => { window.clearTimeout(hold.current); if (peeked.current) onPeek(false) }
   return (
-    <motion.button type="button" onClick={onOpen} onPanEnd={(_, i) => { if (i.offset.y < -50) onOpen() }}
+    <motion.button type="button" onClick={() => { if (peeked.current) { peeked.current = false; return } onOpen() }}
+      onPointerDown={startHold} onPointerUp={endHold} onPointerLeave={endHold} onPointerCancel={endHold} onContextMenu={(e) => e.preventDefault()}
+      onPanStart={() => window.clearTimeout(hold.current)} onPanEnd={(_, i) => { if (i.offset.y < -50) onOpen() }}
       whileTap={{ scale: 0.97 }} aria-label={`Open door ${side.toUpperCase()}: ${d.label}`}
       className="relative flex flex-col items-center gap-3 touch-none select-none">
       <div className="relative w-[min(40vw,170px)] aspect-[17/30] rounded-t-[999px] p-2.5" style={{ background: d.trim, perspective: 900 }}>
@@ -80,6 +87,7 @@ export default function FuturePeek({ input, open, onClose, onChoose, chosen }: {
   const [i, setI] = useState(0)
   const [paused, setPaused] = useState(false)
   const [sharing, setSharing] = useState(false)
+  const [peeking, setPeeking] = useState<Side | null>(null)
   const poster = useRef<HTMLDivElement>(null)
   const pressed = useRef(0) // a long press pauses; releasing it shouldn't also skip
   const e: Ending = futures[side]
@@ -147,13 +155,32 @@ export default function FuturePeek({ input, open, onClose, onChoose, chosen }: {
         <div className="flex-1 flex flex-col items-center justify-center gap-8 px-4 pb-10">
           <div className="text-center">
             <h2 className="text-3xl font-semibold">Two doors. One ping.</h2>
-            <p className="small text-muted mt-2">Tap a door, or swipe it up, to see where it goes.</p>
+            <p className="small text-muted mt-2">Tap a door or swipe it up to open it. Press and hold to peek through the keyhole.</p>
           </div>
+          {input.xray && input.xray.length > 0 && (
+            <div className="w-full max-w-sm"><p className="small text-muted mb-1.5 text-center">X-ray of this ping</p><div className="flex justify-center"><Xray tags={input.xray} usually={input.usually} /></div></div>
+          )}
           <div className="flex gap-5 sm:gap-10">
-            <Door side="a" opening={opening === 'a'} seen={seen.a} onOpen={() => openDoor('a')} />
-            <Door side="b" opening={opening === 'b'} seen={seen.b} onOpen={() => openDoor('b')} />
+            <Door side="a" opening={opening === 'a'} seen={seen.a} onOpen={() => openDoor('a')} onPeek={(on) => setPeeking(on ? 'a' : null)} />
+            <Door side="b" opening={opening === 'b'} seen={seen.b} onOpen={() => openDoor('b')} onPeek={(on) => setPeeking(on ? 'b' : null)} />
           </div>
           <p className="small text-muted text-center max-w-xs">Comedy on top, your twin’s numbers underneath: ~{input.cost} min if you tap{range ? ` (80% range ${range})` : ''}.</p>
+          <AnimatePresence>
+            {peeking && (
+              <motion.div key="keyhole" aria-live="polite" className="fixed inset-0 z-20 grid place-items-center bg-black/85 pointer-events-none"
+                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                <div className="flex flex-col items-center gap-3">
+                  <motion.div className="w-[min(72vw,280px)] aspect-[4/5] overflow-hidden" initial={{ scale: 0.4 }} animate={{ scale: 1 }}
+                    style={{ WebkitMaskImage: 'radial-gradient(circle at 50% 38%, #000 34%, transparent 35%), linear-gradient(#000, #000)', WebkitMaskSize: '100% 100%, 26% 46%', WebkitMaskPosition: '0 0, 50% 92%', WebkitMaskRepeat: 'no-repeat', maskImage: 'radial-gradient(circle at 50% 38%, #000 34%, transparent 35%), linear-gradient(#000, #000)', maskSize: '100% 100%, 26% 46%', maskPosition: '0 0, 50% 92%', maskRepeat: 'no-repeat' }}>
+                    <svg viewBox={`0 0 ${PW} ${PH}`} className="w-full h-full" aria-label={`Peeking at door ${peeking.toUpperCase()}: ${futures[peeking].title}`}>
+                      <PanelArt p={futures[peeking].panels[3]} f={input} uid={`${uid}peep`} />
+                    </svg>
+                  </motion.div>
+                  <p className="small text-muted">Peeking at door {peeking.toUpperCase()}… let go to close</p>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       )}
 

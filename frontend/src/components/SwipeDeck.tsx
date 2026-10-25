@@ -2,9 +2,11 @@ import { useRef, useState } from 'react'
 import { animate, motion, useMotionValue, useMotionValueEvent, useReducedMotion, useTransform, type MotionValue } from 'motion/react'
 import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, Bell, DoorOpen } from 'lucide-react'
 import { feel } from '@/lib/feel'
+import type { Tactic } from '@/lib/future'
+import Xray from './Xray'
 
 export type Swipe = 'allow' | 'hold' | 'digest' | 'noise'
-export type DeckItem = { id: string; app: string; label: string; text: string; minutes_ago: number; recommendation: string; why: string; cost: number; p_open: number }
+export type DeckItem = { id: string; app: string; label: string; text: string; minutes_ago: number; recommendation: string; why: string; cost: number; p_open: number; xray?: Tactic[]; usually?: string | null; guard?: string | null }
 
 // Right lets it through, left holds it, up batches it, down teaches the twin it was noise.
 const DIRS: Record<Swipe, { label: string; hint: string; cls: string; icon: typeof ArrowLeft; key: string }> = {
@@ -88,6 +90,7 @@ function TopCard({ item, onSwipe, fling, onPeek }: { item: DeckItem; onSwipe: (d
         )}
       </div>
       <p className="mt-5 text-xl font-semibold leading-snug">{item.text}</p>
+      <div className="mt-2"><Xray tags={item.xray} usually={item.usually} guard={item.guard} /></div>
       <div className="mt-auto">
         <span className="inline-block -rotate-3 bg-chaos text-field-ink px-3 py-1 font-bold tabular-nums fork-cut">−{item.cost} focus min</span>
         <p className="small text-muted mt-3">{Math.round(item.p_open * 100)}% you’d open it</p>

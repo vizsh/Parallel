@@ -8,7 +8,7 @@
 
 Built for **CASCADE ’26 · Theme 3 · Problem 3: The Attention Digital Twin**
 
-[Run it](RUN.md) · [Project context](docs/CONTEXT.md) · [Logic & formulas](docs/LOGIC_AND_FORMULAS.md) · [Psychology](docs/PSYCHOLOGY.md) · [Phone experience](docs/PHONE_EXPERIENCE.md) · [Door to the Future](docs/FUTURE_PEEK.md) · [Real notifications](docs/REAL_NOTIFICATIONS.md) · [Architecture](docs/ARCHITECTURE.md) · [Data & ML](docs/DATA_AND_ML.md) · [Mobile build](docs/MOBILE.md) · [API](docs/API.md)
+[Run it](RUN.md) · [All features](docs/FEATURE_LIST.md) · [Project context](docs/CONTEXT.md) · [Logic & formulas](docs/LOGIC_AND_FORMULAS.md) · [Psychology](docs/PSYCHOLOGY.md) · [Phone experience](docs/PHONE_EXPERIENCE.md) · [Door to the Future](docs/FUTURE_PEEK.md) · [Real notifications](docs/REAL_NOTIFICATIONS.md) · [Architecture](docs/ARCHITECTURE.md) · [Data & ML](docs/DATA_AND_ML.md) · [Mobile build](docs/MOBILE.md) · [API](docs/API.md)
 
 ![Parallel landing: the attention twin as a hologram head](docs/screenshots/landing-hero.jpg)
 
@@ -71,7 +71,18 @@ Open **`/demo`** (for example `http://localhost:5180/demo`). It's a self-playing
 5. You hold it. It drops into the jar until 1:00 PM; focus keeps going.
 6. At 1:00 PM the held pings arrive as one calm batch, and **future you texts back**.
 
-Add `?clean=1` (`/demo?clean=1`) for a recording mode with just the phone and captions. Record it with any screen recorder (Windows: `Win + Alt + R`; macOS: `Cmd + Shift + 5`) to get a video for slides. A ready-made recording is in [`docs/media/`](docs/media/). The Smart inbox has a **See it on a phone** button that opens the same demo.
+### Simulations: five real-life scenarios
+Signed in, open **Simulations** (`/app/simulations`); without an account, `/demo`. Pick a moment and watch it play on a phone. Each one is also a ready-made 1080×1920 video:
+
+| Scenario | What it shows | Video |
+|---|---|---|
+| Study session: the Instagram like | Cost on top of the notification, both doors, the jar, the 1 PM batch | [study.mp4](frontend/public/simulations/study.mp4) |
+| Developer in flow: three pings, three calls | Algorithm bait held, Mom (VIP) passes, PR review to the 12:30 digest | [dev.mp4](frontend/public/simulations/dev.mp4) |
+| 1 AM doomscroll: the late-night guard | Night guard, Door A's worst case, future you, wind down, morning digest | [night.mp4](frontend/public/simulations/night.mp4) |
+| Exam week: the group-chat storm | Strict mode, 14 messages → 1 held thread, auto-reply draft, 7 PM summary | [exam.mp4](frontend/public/simulations/exam.mp4) |
+| The “we miss you” trap | Manipulation X-ray, teaser unmasking, re-engagement shield, aura | [reengage.mp4](frontend/public/simulations/reengage.mp4) |
+
+`/demo?scenario=<id>&clean=1` is the recording mode (just the phone and captions) used to make these videos; scenarios are data in `frontend/src/lib/scenarios.ts`, so adding one is a few dozen lines.
 
 ## Feature tour
 
@@ -107,8 +118,9 @@ On day one the twin has no history, so it borrows the typical pattern of your ki
 | **Twin brain** | Explorable knowledge graph of tasks, times, triggers, apps and outcomes |
 | **Accuracy** | Calibration, comparison against a generic rule, drift (PSI), prediction-vs-reality |
 | **Data & models** | Dataset preview, model registry, metrics vs baselines, hash-chained audit log |
-| **Coach** | Voice and text coach in English, हिन्दी, मराठी, Español. Every number comes from the models |
+| **Coach** | Voice and text coach in English, हिन्दी, मराठी, Español. Answers 25 kinds of question (what now, plan my evening, Instagram vs YouTube, time lost this week, doomscrolling, exams, sleep, stress…), remembers the conversation and offers follow-up chips. Every number comes from a facts sheet built by your models; with an `ANTHROPIC_API_KEY` on the server, Claude writes the reply from the same facts |
 | **Lab** | Attention budget and debt, co-focus rooms, habit experiments, developer Attention API + JS SDK, team health (aggregates only, k ≥ 5) |
+| **Simulations** | Five real-life phone scenarios (study, dev flow, 1 AM doomscroll, exam group chat, “we miss you” trap) with scrubber and MP4 downloads |
 | **Settings** | Routine, weekly schedule, deadlines, tool vs nag apps, VIPs, privacy: pause learning, retention, export, delete |
 
 ### It knows your day
@@ -137,6 +149,10 @@ The core numbers are serious; the way you meet them doesn't have to be. Everythi
 | **Holo badge cards** | Each decision earns that universe's archetype card (*Main Character Energy*, *Professional Thumb Athlete*…). The foil follows your finger or the gyroscope. 12 to collect in a binder. |
 | **Inbox receipt** | Clear the inbox and a till receipt prints: focus protected, opened on purpose, XP, “NO REELS WERE HARMED”, Share. |
 | **Door to the Future** | Two doors per ping. Each opens onto a four-panel comic drawn in code from your numbers, ending on **The Scrollfather** or **Main Character**, with a shareable 1080×1920 poster. See **[docs/FUTURE_PEEK.md](docs/FUTURE_PEEK.md)**. |
+| **Manipulation X-ray** | Each ping's wording is scanned (in memory only) for social proof, vague teasers, fake urgency, re-engagement bait, streak pressure, algorithm bait and FOMO hooks. Tap a chip to see how the tactic works; vague pings get “unmasked” with what they usually turn out to be. |
+| **Shields** | The **re-engagement shield** sends “we miss you” pings to the digest; the **late-night guard** holds everything but VIPs from 30 minutes before bed until you wake. |
+| **Aura & fate meter** | Holding the line earns aura (+500 max), a confirmed doomscroll costs −1000; weekly tiers from *NPC era* to *Main character*. Today's needle swings between The Scrollfather and Main Character. |
+| **Peephole & plot twist** | Press and hold a door to peek at its ending through the keyhole. When reality beats or misses the twin's range, a fifth comic panel appears where the twin admits it was wrong. |
 | **Texts from future you** | Every decision queues a chat from “you, N minutes from now”, timed to the twin's predicted cost: “bro. it's 11:18 pm. we opened insta ‘to see who liked it’ 💀”. On Android/iOS it arrives as a real local notification. |
 | **Phone demo** | `/demo`: a self-playing phone showing a notification landing and Parallel working on top of it. |
 
@@ -236,6 +252,7 @@ Parallel/
 | Routine-aware decisions, onboarding, check-ins, check moments | ✅ built |
 | Phone-first layer (swipe, jar, fork drag, battery, guess, rain, dominoes, cards, receipt) | ✅ built, tested at phone width in a browser |
 | Door to the Future, Texts from future you, `/demo` | ✅ built, tested in a browser |
+| X-ray, shields, aura & fate, peephole, plot twist, Simulations (5 scenarios + videos), rebuilt coach | ✅ built, tested in a browser |
 | Haptics, shake and gyro on a real device | 🟡 code in place; vibration works in Android Chrome; shake and tilt need HTTPS or the native app; not yet tested on hardware |
 | Inbox pings | 🟡 realistic samples from the API, not your phone's real notifications |
 | Day-0 history and accuracy numbers | 🟡 synthetic, shaped by your declared routine; real data replaces it as it arrives |
@@ -249,6 +266,7 @@ The ordered plan is in **[docs/ROADMAP.md](docs/ROADMAP.md)**; the Gen Z feature
 | Doc | Read it when you want… |
 |---|---|
 | [docs/CONTEXT.md](docs/CONTEXT.md) | the full story: what exists, why it was built this way, conventions, gotchas, how to continue (also written for AI coding agents) |
+| [docs/FEATURE_LIST.md](docs/FEATURE_LIST.md) | every feature in one place, how it works, and its status |
 | [docs/LOGIC_AND_FORMULAS.md](docs/LOGIC_AND_FORMULAS.md) | every formula behind the numbers: the Monte Carlo chain, shrinkage, the decision rule, confidence, blending, evaluation, XP |
 | [docs/PSYCHOLOGY.md](docs/PSYCHOLOGY.md) | how apps use notifications to pull people in, the evidence, and how each Parallel feature counters it |
 | [docs/PHONE_EXPERIENCE.md](docs/PHONE_EXPERIENCE.md) | how each interactive phone component works and where its code is |

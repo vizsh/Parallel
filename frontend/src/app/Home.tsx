@@ -10,6 +10,7 @@ import { api, fmtHour } from '@/lib/api'
 import { useAuth } from '@/lib/auth'
 import { toast, useApi } from '@/lib/hooks'
 import { useSeo } from '@/lib/seo'
+import AuraFate, { type Aura, type Fate } from '@/components/AuraFate'
 import FutureTexts from '@/components/FutureTexts'
 import { CheckMoments, DidItMatter, Doppelganger, EnergyCheckin, KnowledgeMeter, TimeMachine } from './TwinInputs'
 
@@ -23,7 +24,7 @@ type Overview = {
 }
 type Rec = { id: string; type: string; title: string; detail: string; impact_min: number; evidence: string; confidence: number }
 type Quest = { id: string; title: string; detail: string; xp: number; status: string }
-type Game = { xp: number; level: number; next_level_xp: number; world: { current: { name: string; desc: string }; next: { name: string; at: number } | null; places: { name: string; unlocked: boolean; at: number }[] }; streak: { current: number; rule: string }; achievements: { id: string; title: string; desc: string; got: boolean }[] }
+type Game = { aura: Aura; fate: Fate; xp: number; level: number; next_level_xp: number; world: { current: { name: string; desc: string }; next: { name: string; at: number } | null; places: { name: string; unlocked: boolean; at: number }[] }; streak: { current: number; rule: string }; achievements: { id: string; title: string; desc: string; got: boolean }[] }
 type Budget = { daily_min: number; spent_min: number; remaining_min: number; projected_end_of_day: number; on_track: boolean }
 type Plan = { plan: { hour: number; label: string; kind: string; suggestion: string }[] }
 
@@ -118,7 +119,10 @@ export default function Home() {
         <CheckMoments />
       </div>
 
-      <div className="mt-3"><FutureTexts uid={user?.id} /></div>
+      <div className="mt-3 grid gap-3 md:grid-cols-2">
+        <AuraFate aura={game.data?.aura} fate={game.data?.fate} />
+        <FutureTexts uid={user?.id} />
+      </div>
 
       {/* Budget, reservation, checkpoint */}
       <div className="mt-3 grid gap-3 lg:grid-cols-3">

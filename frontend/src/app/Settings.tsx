@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Download, Trash2, Upload } from 'lucide-react'
+import { Download, Moon, ShieldCheck, Trash2, Upload, Vibrate } from 'lucide-react'
 import { PageHead } from './AppShell'
 import { Panel } from '@/components/charts'
 import { LangSwitch } from '@/components/Brand'
@@ -8,6 +8,7 @@ import RoutineEditor, { EMPTY_PROFILE, type Profile } from '@/components/Routine
 import { api } from '@/lib/api'
 import { useAuth } from '@/lib/auth'
 import { toast, useApi } from '@/lib/hooks'
+import { feel, hapticsOn } from '@/lib/feel'
 import { useSeo } from '@/lib/seo'
 
 type Rule = { category: string; label: string; importance: number; mode: string }
@@ -56,6 +57,16 @@ export default function Settings() {
     try { const r = await api<{ imported_rules: number }>('/profile/portable', { body: JSON.parse(await f.text()) }); toast(`Imported ${r.imported_rules} rules`); rules.reload() }
     catch (ex) { toast((ex as Error).message, 'chaos') }
   }
+  const [night, setNight] = useState(true)
+  useEffect(() => { if (prof.data) setNight((prof.data.profile as Profile & { night_guard?: boolean }).night_guard !== false) }, [prof.data])
+  const [haptics, setHaptics] = useState(hapticsOn)
+  const [guess, setGuess] = useState(() => { try { return localStorage.getItem('parallel.guessFirst') !== 'off' } catch { return true } })
+  async function toggleNight(on: boolean) {
+    setNight(on)
+    try { await api('/me/guards', { method: 'PATCH', body: { night_guard: on } }); toast(on ? 'Late-night guard on' : 'Late-night guard off') }
+    catch (e) { setNight(!on); toast((e as Error).message, 'chaos') }
+  }
+  function local(key: string, on: boolean) { try { localStorage.setItem(key, on ? 'on' : 'off') } catch { /* private mode */ } }
   async function del() { await api('/me', { method: 'DELETE' }); signOut(); nav('/') }
 
   return (
@@ -83,6 +94,24 @@ export default function Settings() {
           </ul>
         </Panel>
         <div className="xl:col-span-5 flex flex-col gap-3">
+          <Panel title="Shields & feel" sub="How hard Parallel pushes back, and how it feels in your hand.">
+            <ul className="flex flex-col gap-1.5">
+              {[
+                { icon: Moon, label: 'Late-night guard', sub: 'From 30 min before bed until you wake, only VIPs and urgent pings get through.', on: night, set: toggleNight },
+                { icon: ShieldCheck, label: 'Re-engagement shield', sub: '“We miss you” and “see what you missed” pings go straight to the digest. Always on.', on: true, set: null },
+                { icon: Vibrate, label: 'Haptics', sub: 'A different buzz for allow, hold, digest and noise (phones only).', on: haptics, set: (v: boolean) => { setHaptics(v); local('parallel.haptics', v); if (v) feel('success') } },
+                { icon: ShieldCheck, label: 'Guess before reveal', sub: 'Bet on a ping’s cost before the Multiverse shows the twin’s answer.', on: guess, set: (v: boolean) => { setGuess(v); local('parallel.guessFirst', v) } },
+              ].map((x) => (
+                <li key={x.label}>
+                  <label className={`flex items-center gap-3 bg-surface-2 px-4 py-3 ${x.set ? 'cursor-pointer' : ''}`}>
+                    <x.icon size={18} className="text-calm shrink-0" aria-hidden />
+                    <span className="flex-1"><span className="block">{x.label}</span><span className="block small text-muted">{x.sub}</span></span>
+                    <input type="checkbox" className="w-5 h-5 accent-[var(--color-calm)]" checked={x.on} disabled={!x.set} onChange={(e) => x.set?.(e.target.checked)} />
+                  </label>
+                </li>
+              ))}
+            </ul>
+          </Panel>
           <Panel title="Attention budget" sub="Interruption minutes per day you’re happy to spend.">
             <div className="flex items-center gap-3">
               <input type="range" min={10} max={180} step={5} value={daily} onChange={(e) => setDaily(+e.target.value)} className="flex-1 accent-[var(--color-calm)]" aria-label="Daily budget minutes" />

@@ -50,6 +50,24 @@ class Profile(BaseModel):
     deadlines: list[Deadline] = []
     tools: list[str] = []
     nags: list[str] = []
+    night_guard: bool = True
+
+
+class Guards(BaseModel):
+    night_guard: bool
+
+
+@router.patch("/me/guards")
+def set_guards(body: Guards, u=Depends(current_user)):
+    """Flip a shield without touching (or regenerating from) the rest of the routine."""
+    with closing(db()) as c:
+        r = c.execute("SELECT data FROM user_profile WHERE user_id=?", (u["id"],)).fetchone()
+        data = json.loads(r[0]) if r else dict(routine.DEFAULT)
+        data["night_guard"] = body.night_guard
+        c.execute("INSERT INTO user_profile(user_id,data,updated) VALUES(?,?,?) ON CONFLICT(user_id) DO UPDATE SET data=excluded.data, updated=excluded.updated",
+                  (u["id"], json.dumps(data), time.time()))
+        c.commit()
+    return dict(night_guard=body.night_guard)
 
 
 @router.get("/routine/templates")

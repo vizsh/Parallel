@@ -65,16 +65,16 @@ Ideas from the ideation session, roughly in order of value for effort.
 
 | Idea | What it is | Builds on |
 |---|---|---|
-| **Aura points** | Holding a ping is “+500 aura”; a doomscroll is “−1000 aura, it's giving NPC”. A weekly aura total replaces plain XP in the UI. | XP in `gamify.py` |
-| **Plot-twist panel** | When the reality check disagrees with the prediction, the comic gets a fifth panel: “…plot twist”, the twin admits it was wrong. | `/api/outcomes` verdict + `ComicArt` |
-| **Peephole tease** | Long-press a door to see one panel through the keyhole before committing. | `FuturePeek` doors |
+| ✅ **Aura points** (built in v0.4) | Holding a ping is “+500 aura”; a doomscroll is “−1000 aura, it's giving NPC”. A weekly aura total replaces plain XP in the UI. | XP in `gamify.py` |
+| ✅ **Plot-twist panel** (built in v0.4) | When the reality check disagrees with the prediction, the comic gets a fifth panel: “…plot twist”, the twin admits it was wrong. | `/api/outcomes` verdict + `ComicArt` |
+| ✅ **Peephole tease** (built in v0.4) | Long-press a door to see one panel through the keyhole before committing. | `FuturePeek` doors |
 | **Your week as a webtoon** | Every Sunday, your 6 biggest moments become “Episode 42”, exported 9:16 for Stories. | `ComicPoster`, decisions history |
 | **Door skins that level up** | Wooden door → neon → spaceship hatch → portal, unlocked along the app's existing desk-to-space progression. | `Door` component |
 | **NPC mode vs main character mode** | The Today header changes from a grey crowd shot to a spotlight based on your focus. | Today overview |
 | **Co-op comic** | In a co-focus room, both friends appear in the same panel; if one opens Instagram, their character wanders off-frame. | Lab co-focus rooms |
 | **Lock-screen widget episode** | “Today's episode: *The Assignment Strikes Back* · 2 doors held”. | Native widget |
 | **Optional sounds** | Door creak, a choir for Door B, a sad trombone for Door A. Off by default. | `feel.ts` |
-| **Fate meter** | A live gauge of how today's choices are trending: Scrollfather ↔ Main Character. | decisions of the day |
+| ✅ **Fate meter** (built in v0.4) | A live gauge of how today's choices are trending: Scrollfather ↔ Main Character. | decisions of the day |
 
 ## Art direction and references
 Style: simple characters, thick black outlines, flat saturated fills, one big punchline panel, sound-effect lettering, clocks that jump. Comedy, never shame.

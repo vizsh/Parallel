@@ -22,6 +22,7 @@ const Coach = lazy(() => import('./app/Coach'))
 const Settings = lazy(() => import('./app/Settings'))
 const Lab = lazy(() => import('./app/Lab'))
 const Models = lazy(() => import('./app/Models'))
+const Simulations = lazy(() => import('./app/Simulations'))
 
 function Loader() {
   return <div className="min-h-screen grid place-items-center text-muted" role="status">Loading…</div>
@@ -63,6 +64,7 @@ export default function App() {
           <Route path="lab" element={<Lab />} />
           <Route path="models" element={<Models />} />
           <Route path="settings" element={<Settings />} />
+          <Route path="simulations" element={<Simulations />} />
         </Route>
         <Route path="*" element={<NotFound />} />
       </Routes>

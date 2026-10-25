@@ -6,6 +6,8 @@ import { Bell, Clock, MonitorPlay, Copy, Inbox as InboxIcon, Layers, List, Messa
 import { PageHead } from './AppShell'
 import { Panel } from '@/components/charts'
 import FuturePeek from '@/components/FuturePeek'
+import Xray from '@/components/Xray'
+import type { Tactic } from '@/lib/future'
 import HeldJar from '@/components/HeldJar'
 import Receipt from '@/components/Receipt'
 import SwipeDeck, { type Swipe } from '@/components/SwipeDeck'
@@ -15,7 +17,7 @@ import { useAuth } from '@/lib/auth'
 import { toast, useApi } from '@/lib/hooks'
 import { useSeo } from '@/lib/seo'
 
-type Item = { id: string; category: string; label: string; app: string; text: string; minutes_ago: number; recommendation: string; why: string; cost: number; saved: number; p_open: number; confidence: number }
+type Item = { id: string; category: string; label: string; app: string; text: string; minutes_ago: number; recommendation: string; why: string; cost: number; saved: number; p_open: number; confidence: number; xray?: Tactic[]; usually?: string | null; guard?: string | null }
 type Digest = { pending: number; due: number; groups: { category: string; label: string; next_release: number; items: { id: number; text: string; mode: string; release_at: number }[] }[] }
 
 const REC = {
@@ -39,7 +41,7 @@ export default function Inbox() {
   const [peek, setPeek] = useState<Item | null>(null)
   const future = useMemo(() => peek && ({
     category: peek.category, app: peek.app, text: peek.text, task: 'work', hour: new Date().getHours() + new Date().getMinutes() / 60,
-    cost: peek.cost, holdCost: Math.max(0, +(peek.cost - peek.saved).toFixed(1)),
+    cost: peek.cost, holdCost: Math.max(0, +(peek.cost - peek.saved).toFixed(1)), xray: peek.xray, usually: peek.usually,
   }), [peek])
   async function draft(it: Item) {
     const r = await api<{ text: string }>(`/autoreply?category=${it.category}&lang=${i18n.language}`)
@@ -86,7 +88,7 @@ export default function Inbox() {
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg small ${mode === m ? 'bg-surface-2 text-ink' : 'text-muted'}`}><I size={15} aria-hidden /> {l}</button>
               ))}
             </div>
-            <Link to="/demo" className="btn btn-ghost"><MonitorPlay size={18} /> See it on a phone</Link>
+            <Link to="/app/simulations" className="btn btn-ghost"><MonitorPlay size={18} /> Simulations</Link>
             <button onClick={acceptAll} disabled={!pending.length} className="btn"><ShieldCheck size={18} /> Accept all twin calls</button>
           </div>} />
       <div className="grid gap-3 xl:grid-cols-12">
@@ -108,6 +110,7 @@ export default function Inbox() {
                     <div className="min-w-0">
                       <p className="small text-muted">{it.app} · {it.label} · {it.minutes_ago} min ago</p>
                       <p className="font-medium">{it.text}</p>
+                      {!d && <div className="mt-1.5"><Xray tags={it.xray} usually={it.usually} guard={it.guard} compact /></div>}
                       <p className="small text-muted mt-1">{Math.round(it.p_open * 100)}% you’d open it · ~{it.cost} min expected cost · {Math.round(it.confidence * 100)}% confidence</p>
                       <p className="small mt-2"><span className={`px-2 py-0.5 mr-2 font-medium ${r.cls}`}>{r.label}</span><span className="text-muted">{it.why}</span></p>
                     </div>

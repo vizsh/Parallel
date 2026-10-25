@@ -41,7 +41,8 @@ export default function Coach() {
           </Panel>
           <Panel title="How it stays honest">
             <ul className="flex flex-col gap-2 small text-muted">
-              <li className="flex gap-2"><ShieldCheck size={16} className="text-calm shrink-0" /> An intent router picks the question type. Numbers come from your models, so it can’t invent statistics.</li>
+              <li className="flex gap-2"><ShieldCheck size={16} className="text-calm shrink-0" /> Every number comes from your own models: a facts sheet (focus now, golden hours, check moments, deadline, top distractions, last 7 days, aura) is built for each question. It remembers the last few messages, so “why?” and “and YouTube?” work.</li>
+              <li className="flex gap-2"><Sparkles size={16} className="text-calm shrink-0" /> With an Anthropic API key on the server, Claude writes the reply from that facts sheet; without one, the built-in twin answers. Each reply says which.</li>
               <li className="flex gap-2"><Mic size={16} className="text-calm shrink-0" /> Voice uses your browser’s speech engine. Audio never reaches Parallel.</li>
               <li className="flex gap-2"><ShieldCheck size={16} className="text-calm shrink-0" /> Conversations are stored in your account and included in your data export.</li>
             </ul>

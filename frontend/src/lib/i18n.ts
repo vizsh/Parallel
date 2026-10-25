@@ -35,7 +35,7 @@ const en = {
   cta: { lead: 'Start your twin with', placeholder: 'your email', go: 'Fork it' },
   app: {
     home: 'Today', simulator: 'Multiverse', inbox: 'Smart inbox', fingerprint: 'Fingerprint', replay: 'Replay',
-    brain: 'Twin brain', accuracy: 'Accuracy', coach: 'Coach', settings: 'Rules & privacy', signout: 'Sign out',
+    brain: 'Twin brain', accuracy: 'Accuracy', coach: 'Coach', settings: 'Rules & privacy', signout: 'Sign out', simulations: 'Simulations',
   },
   common: { allow: 'Allow now', delay: 'Hold back', summarize: 'Add to digest', confidence: 'confidence', loading: 'Loading your twin…', back: 'Back' },
   coach: { title: 'Twin coach', placeholder: 'Ask your twin…', listen: 'Listening…', speak: 'Hold to talk', hint: 'Try: “Should I open this Instagram like?”' },
@@ -53,7 +53,7 @@ const hi: Dict = {
   research: { title: 'ध्यान शोध पर आधारित' },
   faq: { title: 'सवाल' },
   cta: { lead: 'अपना ट्विन शुरू करें', placeholder: 'आपका ईमेल', go: 'शुरू करें' },
-  app: { home: 'आज', simulator: 'मल्टीवर्स', inbox: 'स्मार्ट इनबॉक्स', fingerprint: 'फिंगरप्रिंट', replay: 'रीप्ले', brain: 'ट्विन ब्रेन', accuracy: 'सटीकता', coach: 'कोच', settings: 'नियम व गोपनीयता', signout: 'साइन आउट' },
+  app: { home: 'आज', simulator: 'मल्टीवर्स', inbox: 'स्मार्ट इनबॉक्स', fingerprint: 'फिंगरप्रिंट', replay: 'रीप्ले', brain: 'ट्विन ब्रेन', accuracy: 'सटीकता', coach: 'कोच', settings: 'नियम व गोपनीयता', signout: 'साइन आउट', simulations: 'सिमुलेशन' },
   common: { allow: 'अभी आने दें', delay: 'रोकें', summarize: 'डाइजेस्ट में डालें', confidence: 'भरोसा', loading: 'आपका ट्विन लोड हो रहा है…', back: 'वापस' },
   coach: { title: 'ट्विन कोच', placeholder: 'अपने ट्विन से पूछें…', listen: 'सुन रहा हूँ…', speak: 'बोलने के लिए दबाएँ', hint: 'पूछें: “क्या मैं यह इंस्टा लाइक खोलूं?”' },
 }
@@ -68,7 +68,7 @@ const mr: Dict = {
   research: { title: 'लक्ष संशोधनावर आधारित' },
   faq: { title: 'प्रश्न' },
   cta: { lead: 'तुमचा ट्विन सुरू करा', placeholder: 'तुमचा ईमेल', go: 'सुरू करा' },
-  app: { home: 'आज', simulator: 'मल्टिव्हर्स', inbox: 'स्मार्ट इनबॉक्स', fingerprint: 'फिंगरप्रिंट', replay: 'रिप्ले', brain: 'ट्विन ब्रेन', accuracy: 'अचूकता', coach: 'कोच', settings: 'नियम व गोपनीयता', signout: 'साइन आउट' },
+  app: { home: 'आज', simulator: 'मल्टिव्हर्स', inbox: 'स्मार्ट इनबॉक्स', fingerprint: 'फिंगरप्रिंट', replay: 'रिप्ले', brain: 'ट्विन ब्रेन', accuracy: 'अचूकता', coach: 'कोच', settings: 'नियम व गोपनीयता', signout: 'साइन आउट', simulations: 'सिम्युलेशन' },
   common: { allow: 'आत्ता येऊ द्या', delay: 'थांबवा', summarize: 'डायजेस्टमध्ये टाका', confidence: 'विश्वास', loading: 'तुमचा ट्विन लोड होत आहे…', back: 'मागे' },
   coach: { title: 'ट्विन कोच', placeholder: 'तुमच्या ट्विनला विचारा…', listen: 'ऐकत आहे…', speak: 'बोलण्यासाठी दाबा', hint: 'विचारा: “ही इन्स्टा सूचना उघडू का?”' },
 }
@@ -83,7 +83,7 @@ const es: Dict = {
   research: { title: 'Basado en investigación sobre atención' },
   faq: { title: 'Preguntas' },
   cta: { lead: 'Empieza tu gemelo con', placeholder: 'tu email', go: 'Bifurcar' },
-  app: { home: 'Hoy', simulator: 'Multiverso', inbox: 'Bandeja inteligente', fingerprint: 'Huella', replay: 'Repetición', brain: 'Cerebro', accuracy: 'Precisión', coach: 'Coach', settings: 'Reglas y privacidad', signout: 'Salir' },
+  app: { home: 'Hoy', simulator: 'Multiverso', inbox: 'Bandeja inteligente', fingerprint: 'Huella', replay: 'Repetición', brain: 'Cerebro', accuracy: 'Precisión', coach: 'Coach', settings: 'Reglas y privacidad', signout: 'Salir', simulations: 'Simulaciones' },
   common: { allow: 'Permitir ahora', delay: 'Retener', summarize: 'Al resumen', confidence: 'confianza', loading: 'Cargando tu gemelo…', back: 'Volver' },
   coach: { title: 'Coach gemelo', placeholder: 'Pregunta a tu gemelo…', listen: 'Escuchando…', speak: 'Mantén para hablar', hint: 'Prueba: “¿Debería abrir este me gusta de Instagram?”' },
 }

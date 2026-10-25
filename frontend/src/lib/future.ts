@@ -1,15 +1,18 @@
 /** Door to the Future: turns one ping's predictions into two four-panel comics. */
 import { GENERIC, SCRIPTS } from './universes'
 
-export type Scene = 'buzz' | 'reels' | 'night' | 'scrollfather' | 'held' | 'flow' | 'done' | 'maincharacter'
+export type Scene = 'buzz' | 'reels' | 'night' | 'scrollfather' | 'held' | 'flow' | 'done' | 'maincharacter' | 'plottwist'
 export type Mood = 'tempted' | 'zombie' | 'smug' | 'focused' | 'proud'
 export type ComicPanel = { scene: Scene; mood: Mood; clock: string; caption: string; sfx: string }
 export type Ending = { side: 'a' | 'b'; title: string; tagline: string; panels: ComicPanel[] }
 
+/** An engagement tactic the backend's Manipulation X-ray found in a ping's wording. */
+export type Tactic = { tactic: string; label: string; explain: string }
 /** What a peek needs. The Multiverse passes a full simulation; the inbox passes its lighter estimate. */
 export type FutureInput = {
   category: string; app: string; text: string; task: string; hour: number
   cost: number; p10?: number; p90?: number; holdCost: number
+  xray?: Tactic[]; usually?: string | null
 }
 
 export function clockAt(hour: number, plusMin = 0) {
@@ -43,6 +46,18 @@ export function buildFutures(f: FutureInput): { a: Ending; b: Ending } {
         { scene: 'maincharacter', mood: 'proud', clock: clockAt(f.hour, 50 + f.holdCost), caption: `Year 2047: ${B[3]}`, sfx: '✦ ✦ ✦' },
       ],
     },
+  }
+}
+
+/** The fifth panel, when reality disagrees with the twin. */
+export function plotTwist(predicted: number, actual: number, hour: number): ComicPanel {
+  const beat = actual < predicted
+  return {
+    scene: 'plottwist', mood: beat ? 'proud' : 'tempted', clock: clockAt(hour, actual),
+    caption: beat
+      ? `…plot twist. Twin said ${predicted} min. You did it in ${actual}. The algorithm got humbled.`
+      : `…plot twist. Twin said ${predicted} min. It took ${actual}. Noted. Updating the model.`,
+    sfx: beat ? 'HUMBLED' : 'oof',
   }
 }
 

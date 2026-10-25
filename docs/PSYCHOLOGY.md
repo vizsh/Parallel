@@ -102,11 +102,11 @@ The target user already knows phones are “bad for them”; warnings bounce off
 ---
 
 ## 6. Feature ideas this research suggests
-- **Manipulation X-ray:** on each held ping, a label naming the tactic it uses (*social proof*, *vague teaser*, *streak pressure*, *re-engagement*), derived on the device from the notification's structure and category without storing its text.
-- **Teaser unmasking:** for vague pings (“You have new activity”), the peek says honestly what is most likely behind it from your history (“usually 1–2 likes, no messages”).
+- ✅ **Manipulation X-ray** (built in v0.4): on each held ping, a label naming the tactic it uses (*social proof*, *vague teaser*, *streak pressure*, *re-engagement*), derived on the device from the notification's structure and category without storing its text.
+- ✅ **Teaser unmasking** (built): for vague pings (“You have new activity”), the peek says honestly what is most likely behind it from your history (“usually 1–2 likes, no messages”).
 - **Badge-blind mode:** with Parallel's listener active, hide home-screen badge counts for nag apps and show them only at check moments.
-- **Re-engagement shield:** detect “we miss you” style pings (sent after inactivity) and auto-digest them.
-- **Late-night guard:** a voluntary version of the New York and California rules for anyone: after a chosen bedtime, only VIPs pass.
+- ✅ **Re-engagement shield** (built): detect “we miss you” style pings (sent after inactivity) and auto-digest them.
+- ✅ **Late-night guard** (built): a voluntary version of the New York and California rules for anyone: after a chosen bedtime, only VIPs pass.
 - **Your attention report card for apps:** which apps send the most pings that you later mark “didn't matter”; a one-tap “turn these off in the app's own settings” guide.
 
 ---

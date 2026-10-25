@@ -122,7 +122,7 @@ function Rays({ c, n = 14, cx = 200, cy = 260, o = 0.35 }: { c: string; n?: numb
 
 const BG: Record<ComicPanel['scene'], string> = {
   buzz: '#ffe1cf', reels: '#2b1840', night: '#141026', scrollfather: '#3a160b',
-  held: '#dff7ee', flow: '#bff3e1', done: '#fff1bf', maincharacter: '#ffe27a',
+  held: '#dff7ee', flow: '#bff3e1', done: '#fff1bf', maincharacter: '#ffe27a', plottwist: '#e9dcff',
 }
 
 function Scene({ p, f }: { p: ComicPanel; f: FutureInput }) {
@@ -193,6 +193,22 @@ function Scene({ p, f }: { p: ComicPanel; f: FutureInput }) {
       <Laptop x={150} y={400} tone="#d6ffef" screen={<text x={0} y={-30} textAnchor="middle" fontSize={22} fontWeight={900} fill="#1aa37e">✓ DONE</text>} />
       <Phone x={320} y={392} rot={12}><path d="M0 4 c-10 -10 -14 -2 -8 4 l8 8 l8 -8 c6 -6 2 -14 -8 -4 Z" fill="#ff4a1f" /></Phone>
       <Bubble x={240} y={250} w={140} lines={['reel = reward']} size={14} />
+    </g>
+    case 'plottwist': return <g>
+      <Rays c="#8b5cf6" n={20} o={0.18} cx={200} cy={300} />
+      <Kid x={120} y={300} mood={p.mood} />
+      {/* the twin, a little robot, caught out */}
+      <g transform="translate(290 290)">
+        <path d="M0 -70 v-22" stroke={INK} strokeWidth={4} /><circle cx={0} cy={-96} r={7} fill="#3ee6b5" stroke={INK} strokeWidth={3} />
+        <rect x={-48} y={-70} width={96} height={78} rx={18} fill="#d9dde4" stroke={INK} strokeWidth={4} />
+        <rect x={-34} y={-54} width={68} height={40} rx={10} fill="#18191b" />
+        <circle cx={-14} cy={-34} r={6} fill="#3ee6b5" /><circle cx={14} cy={-34} r={6} fill="#3ee6b5" />
+        <path d="M-10 -20 q10 -6 20 0" stroke="#3ee6b5" strokeWidth={3} fill="none" />
+        <path d="M44 -66 q8 10 0 18 q-8 -8 0 -18 Z" fill="#7fd3ff" stroke={INK} strokeWidth={2} />
+        <rect x={-40} y={10} width={80} height={70} rx={12} fill="#c4c9d2" stroke={INK} strokeWidth={4} />
+      </g>
+      <Desk />
+      <Bubble x={196} y={150} w={190} lines={['...ok. I was', 'wrong. Updating.']} size={15} />
     </g>
     case 'maincharacter': return <g>
       <Rays c="#fff" n={16} o={0.5} cx={200} cy={240} />

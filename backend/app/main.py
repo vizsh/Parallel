@@ -19,9 +19,12 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel, EmailStr, Field
 
 from .personas import CATEGORIES, PERSONAS
-from .assistant import answer
+from .assistant import answer, facts as coach_facts
+from . import llm_coach
+from .tactics import is_reengagement, unmask, xray
 from . import history as hist
 from . import population
+from . import routine
 from .twin import _cache as _twin_cache, get_twin
 from .gamify import CAPABILITIES, checkpoint_after, streak, world_state, xp_for
 from datetime import date, datetime
@@ -312,6 +315,7 @@ def accuracy(u=Depends(current_user)):
 
 class SimRequest(BaseModel):
     category: str
+    text: str | None = None
     hour: float | None = None
     depth: float | None = None
     minutes_in: float = 35
@@ -336,20 +340,37 @@ def simulate(body: SimRequest, u=Depends(current_user)):
         res["blend"] = dict(personal_weight=round(w, 2),
                             p_open=round(w * res["allow"]["p_open"] + (1 - w) * pop["p_open"], 3),
                             cost_p50=round(w * res["allow"]["cost_p50"] + (1 - w) * pop["cost_p50"], 1))
-    mode = rule_modes(u).get(body.category)
-    if body.category in vip_of(u) or mode == "always":
-        res["recommendation"], res["why"] = "allow", "You marked this as always-allowed. Your rules win."
-    elif mode == "digest":
-        res["recommendation"], res["why"] = "summarize", "Your rule sends these to the digest."
-    elif mode == "never":
-        res["recommendation"], res["why"] = "delay", "You muted this category. It waits in the queue until you look."
+    res["recommendation"], res["why"], res["guard"] = apply_rules(u, t, body.category, res["context"]["hour"], body.text,
+                                                                  res["recommendation"], res["why"])
+    res["xray"] = xray(body.text, body.category)
+    res["usually"] = unmask(body.category)
     return res
+
+
+def apply_rules(u, t, category: str, hour: float, text: str | None, rec: str, why: str):
+    """User rules, then the shields. Order: VIP/always > muted/digest rules > re-engagement shield > late-night guard."""
+    mode = rule_modes(u).get(category)
+    if category in vip_of(u) or mode == "always":
+        return "allow", "You marked this as always-allowed. Your rules win.", None
+    if mode == "digest":
+        return "summarize", "Your rule sends these to the digest.", None
+    if mode == "never":
+        return "delay", "You muted this category. It waits in the queue until you look.", None
+    importance = t.learned_importance.get(category, CATEGORIES[category]["importance"])
+    if is_reengagement(xray(text, category)) and importance < 0.75:
+        return "summarize", "Re-engagement shield: this ping exists because you've been away, not because something happened. Digest.", "reengagement"
+    if importance < 0.75 and rec != "delay" and routine.night_guard_active(t.profile, hour):
+        bed = routine.fmt(float(routine.merge(t.profile)["bed"]) - 0.5)
+        return "delay", f"Late-night guard: after {bed} only VIPs and urgent things get through. It'll be in your morning digest.", "night"
+    return rec, why, None
 
 
 def rule_modes(u) -> dict:
     with closing(db()) as c:
         return {r["category"]: r["mode"] for r in c.execute("SELECT category, mode FROM rules WHERE user_id=?", (u["id"],))}
 
+
+REENGAGE_TEXT = "You have 9 new notifications. See what you missed 👀"
 
 SAMPLE_TEXT = {
     "social_like": "aarav_07 and 12 others liked your post",
@@ -369,17 +390,16 @@ SAMPLE_TEXT = {
 def queue(u=Depends(current_user)):
     t = twin_of(u)
     now = t.context_now()
-    vip = vip_of(u)
-    modes = rule_modes(u)
     out = []
-    for i, k in enumerate(["social_like", "work_chat", "video_reco", "family", "promo", "social_dm", "calendar", "news"]):
+    items = [(k, SAMPLE_TEXT[k]) for k in ["social_like", "work_chat", "video_reco", "family", "promo", "social_dm", "calendar", "news"]]
+    items.append(("social_like", REENGAGE_TEXT))
+    for i, (k, text) in enumerate(items):
         r = t.simulate(k, now["hour"], now["depth"], 35, now["fatigue"], now["task"], 600, rng_seed=i)
-        rec = "allow" if k in vip else {"digest": "summarize", "never": "delay"}.get(modes.get(k), r["recommendation"])
-        if rec != r["recommendation"]:
-            r["why"] = "Your rule decides this one."
-        out.append(dict(id=f"q{i}", category=k, label=r["label"], app=r["app"], text=SAMPLE_TEXT[k],
-                        minutes_ago=i * 3 + 1, recommendation=rec, why=r["why"], cost=r["allow"]["cost_expected"],
-                        saved=r["saved_minutes"], p_open=r["allow"]["p_open"], confidence=r["confidence"]))
+        rec, why, guard = apply_rules(u, t, k, now["hour"], text, r["recommendation"], r["why"])
+        out.append(dict(id=f"q{i}", category=k, label=r["label"], app=r["app"], text=text,
+                        minutes_ago=i * 3 + 1, recommendation=rec, why=why, guard=guard, cost=r["allow"]["cost_expected"],
+                        saved=r["saved_minutes"], p_open=r["allow"]["p_open"], confidence=r["confidence"],
+                        xray=xray(text, k), usually=unmask(k)))
     return out
 
 
@@ -431,7 +451,52 @@ def stats_for(u):
         dict(id="ten", title="Main character arc", desc="10 decisions made with your twin", got=len(rows) >= 10),
     ]
     return dict(decisions=len(rows), held_back=held, minutes_saved=round(saved, 1), xp=xp, level=level,
-                next_level_xp=level * 100, achievements=achievements, recent=[dict(r) for r in rows[:8]])
+                next_level_xp=level * 100, achievements=achievements, recent=[dict(r) for r in rows[:8]],
+                aura=aura_of(rows), fate=fate_of(rows))
+
+
+AURA_TIERS = [(-10**9, "NPC era", "Feeds are winning. One hold flips it."), (0, "Side quest", "You're choosing on purpose sometimes."),
+              (1000, "Main character loading", "Holding the line most of the time."), (3000, "Main character", "Your attention, your plot.")]
+
+
+def aura_points(r) -> tuple[int, str]:
+    """Aura for one decision: holds earn by minutes protected, cheap on-purpose opens earn too, a confirmed doomscroll costs."""
+    if r["choice"] != "allow":
+        pts, why = max(50, min(500, round((r["saved"] or 0) * 25))), "held the line"
+    elif (r["predicted_cost"] or 0) < 5:
+        pts, why = 50, "opened on purpose, low cost"
+    else:
+        pts, why = 0, "opened"
+    if r["actual_cost"] is not None:
+        pts += 100
+        if r["choice"] == "allow" and r["actual_cost"] >= 20:
+            pts, why = pts - 1000, "confirmed doomscroll (it's giving NPC)"
+    return pts, why
+
+
+def aura_of(rows) -> dict:
+    week = time.time() - 7 * 86400
+    total = sum(aura_points(r)[0] for r in rows)
+    weekly = sum(aura_points(r)[0] for r in rows if r["ts"] >= week)
+    tier = [t for t in AURA_TIERS if weekly >= t[0]][-1]
+    last = [dict(points=aura_points(r)[0], why=aura_points(r)[1], category=r["category"]) for r in rows[:5]]
+    return dict(total=total, week=weekly, tier=tier[1], line=tier[2], recent=last)
+
+
+def fate_of(rows) -> dict:
+    """Today's trend from -1 (Scrollfather) to +1 (Main Character)."""
+    day0 = datetime.combine(date.today(), datetime.min.time()).timestamp()
+    scores = []
+    for r in rows:
+        if r["ts"] < day0:
+            continue
+        s = 1.0 if r["choice"] != "allow" else (0.5 if (r["predicted_cost"] or 0) < 5 else (-1.0 if (r["predicted_cost"] or 0) >= 15 else 0.0))
+        if r["choice"] == "allow" and r["actual_cost"] is not None and r["actual_cost"] >= 20:
+            s -= 1
+        scores.append(max(-1.0, min(1.0, s)))
+    v = round(sum(scores) / len(scores), 2) if scores else 0.0
+    label = "Main Character arc" if v >= 0.33 else "Scrollfather arc" if v <= -0.33 else "Plot undecided"
+    return dict(value=v, label=label, decisions_today=len(scores))
 
 
 # ------------------------------------------------- ML extras & recommender
@@ -531,12 +596,30 @@ class Ask(BaseModel):
 
 @app.post("/api/assistant")
 def assistant(body: Ask, u=Depends(current_user)):
-    res = answer(twin_of(u), body.text, body.lang, u["persona"], stats_for(u), vip_of(u))
+    t, stats, vip = twin_of(u), stats_for(u), vip_of(u)
+    with closing(db()) as c:
+        rows = c.execute("SELECT role, text, intent FROM chat_messages WHERE user_id=? ORDER BY id DESC LIMIT 8", (u["id"],)).fetchall()[::-1]
+        held = c.execute("SELECT COUNT(*) FROM deferred_queue WHERE user_id=? AND released IS NULL", (u["id"],)).fetchone()[0]
+    # intent is stored as "intent|category" so follow-ups ("why?", "and youtube?") know what we were talking about
+    history = [dict(role=r["role"], text=r["text"], intent=(r["intent"] or "").split("|")[0] or None,
+                    category=((r["intent"] or "").split("|") + [""])[1] or None) for r in rows]
+    ctx = dict(history=history, held=held, vip=vip, persona=u["persona"])
+    res = answer(t, body.text, body.lang, u["persona"], stats, vip, ctx)
+    if llm_coach.enabled():
+        better = llm_coach.reply(coach_facts(t, stats, ctx), history, body.text, body.lang)
+        if better:
+            res.update(reply=better, source="claude")
+    tag = res["intent"] + (f"|{res['category']}" if res.get("category") else "")
     with closing(db()) as c, c:
         c.executemany("INSERT INTO chat_messages(user_id,ts,role,lang,text,intent) VALUES(?,?,?,?,?,?)",
-                      [(u["id"], time.time(), "user", body.lang, body.text, res["intent"]),
-                       (u["id"], time.time(), "twin", res["lang"], res["reply"], res["intent"])])
+                      [(u["id"], time.time(), "user", body.lang, body.text, tag),
+                       (u["id"], time.time(), "twin", res["lang"], res["reply"], tag)])
     return res
+
+
+@app.get("/api/assistant/mode")
+def assistant_mode():
+    return dict(mode="claude" if llm_coach.enabled() else "rules", model=llm_coach.MODEL if llm_coach.enabled() else None)
 
 
 # ------------------------------------------------- privacy

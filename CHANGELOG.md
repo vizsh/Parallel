@@ -1,5 +1,19 @@
 # Changelog
 
+## v0.4.0 — shields, simulations and a coach that actually talks
+### Added
+- **Simulations:** five self-playing phone scenarios (study session, developer in flow, 1 AM doomscroll, exam-week group chat, the “we miss you” trap) at `/app/simulations` and `/demo`, each recorded as a 1080×1920 MP4 in `frontend/public/simulations/`.
+- **Manipulation X-ray:** names the engagement tactic in each ping (7 tactics), with teaser unmasking. Shown in the inbox, swipe cards, Multiverse and on the doors.
+- **Shields:** re-engagement shield (“we miss you” → digest) and a late-night guard (only VIPs from 30 min before bed until wake), toggle in Settings (`PATCH /api/me/guards`).
+- **Aura points and the fate meter** on Today, from your decisions (`aura`, `fate` in `/api/gamification/profile`).
+- **Peephole** (press and hold a door) and the **plot-twist panel** (fifth comic panel when reality falls outside the twin's range).
+- **Coach rebuilt:** 25 question types, conversation memory, follow-up chips, a grounded facts sheet, and optional Claude (Opus 5.5, `ANTHROPIC_API_KEY`) with automatic fallback to the built-in engine.
+- **Shields & feel** panel in Settings: late-night guard, re-engagement shield, haptics on/off, guess-before-reveal on/off.
+- **Docs:** `FEATURE_LIST.md` (every feature and how it works), updated API, formulas and context.
+
+### Fixed
+- The late-night guard never overrides a more specific hold reason (for example “You're in Lectures until 1:00 PM”).
+
 ## v0.3.0 — phone-first, Gen Z layer
 ### Added
 - **Haptic language** (`lib/feel.ts`): one distinct feel per kind of choice; native haptics, `navigator.vibrate` fallback, shake detection, an off switch.

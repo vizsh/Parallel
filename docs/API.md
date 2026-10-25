@@ -23,20 +23,22 @@ Authentication is `Authorization: Bearer <token>`, from sign-in, sign-up or a de
 | GET | /twin/overview | Fingerprint, insights, current state, categories, apps, stats |
 | GET | /attention/profile · /attention/timeline | Fingerprint; day replay |
 | GET | /twin/graph · /twin/archetypes · /twin/forecast · /twin/accuracy | Knowledge graph, KMeans day types, forecast, backtest |
-| POST | /simulations | Allow/hold futures with ranges, explanation, population blend; prediction is logged |
+| POST | /simulations | Allow/hold futures with ranges, explanation, population blend; prediction is logged. Optional `text` (read in memory only) adds `xray` (engagement tactics), `usually` (teaser unmasking) and `guard` (`night` / `reengagement` when a shield decided) |
 | POST | /simulate · /notifications/{category}/predict | Same, without logging / for a category |
-| GET | /notifications/queue | Live triage queue |
+| GET | /notifications/queue | Live triage queue (9 sample pings, including a “we miss you” re-engagement ping), each with `xray`, `usually` and `guard` |
 | GET | /recommendations · /insights/daily | Uplift-ranked actions; daily insights |
 | POST | /interventions · /outcomes | Record a choice; record what really happened (XP, live data) |
 | GET | /outcomes · /digest | Predictions vs reality; deferred queue |
 | POST | /digest/release | Deliver the queued digest now |
 | GET | /experiments · /models · /data-quality | Randomized effects with confidence intervals; drift; data quality |
-| POST | /assistant | Multilingual coach (`{text, lang}`) |
+| POST | /assistant | Coach (`{text, lang}`). Remembers the last 8 messages; returns `reply`, `intent`, `category`, `card`, `suggest` (follow-up chips) and `source` (`rules` or `claude`) |
+| GET | /assistant/mode 🌐 | Whether the coach is using Claude (API key configured) or the built-in engine |
 
 ## Routine & ongoing inputs
 | Method | Path | Purpose |
 |---|---|---|
-| GET, PUT | /me/profile | Declared routine: wake/bed, chronotype, weekly `blocks`, `deadlines`, `tools`, `nags`. PUT regenerates the warm-up history |
+| GET, PUT | /me/profile | Declared routine: wake/bed, chronotype, weekly `blocks`, `deadlines`, `tools`, `nags`, `night_guard`. PUT regenerates the warm-up history |
+| PATCH | /me/guards | Flip the late-night guard (`{night_guard: bool}`) without regenerating anything |
 | GET | /routine/templates | Weekly schedule templates (college, office, remote dev, creator) |
 | POST, GET | /checkins | 10-second energy check-in (`{energy: 1..5}`); overrides the fatigue estimate for 3 h |
 | POST, GET | /feedback/matter | “Did this matter?” (`{category, mattered}`); returns generic vs learned importance |
@@ -63,7 +65,7 @@ Authentication is `Authorization: Bearer <token>`, from sign-in, sign-up or a de
 | GET, PUT | /rules | Per-category rule: auto · always · digest · never |
 | POST, GET | /sessions · /sessions/current · /sessions/end | Focus sessions with a next-step checkpoint |
 | GET, POST | /quests · /quests/{id}/complete | Quests (validated against real activity) |
-| GET | /gamification/profile · /companion | XP, level, world, streak, achievements; Echo |
+| GET | /gamification/profile · /companion | XP, level, world, streak, achievements, `aura` (week, total, tier, recent) and `fate` (today, −1…+1); Echo |
 | GET, PUT | /budget | Attention budget |
 | GET | /debt | Attention debt ledger |
 | POST, GET, DELETE | /focus/reserve · /focus/status | Focus reservation |

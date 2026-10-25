@@ -2,7 +2,7 @@
 
 This is the document to read before touching the code. It explains what Parallel is, how it got here, why things are the way they are, the conventions the code follows, and the traps that cost time before. It is written for new teammates and for AI coding agents picking the project up cold.
 
-> Last updated: 2026-10-25 (v0.3.0). Repository: https://github.com/vizsh/Parallel
+> Last updated: 2026-10-26 (v0.4.0). Repository: https://github.com/vizsh/Parallel
 
 ---
 
@@ -25,7 +25,8 @@ The maths behind every number is in [LOGIC_AND_FORMULAS.md](LOGIC_AND_FORMULAS.m
 |---|---|
 | v0.1.0 (hackathon) | Personal twin, Multiverse simulator, smart inbox, fingerprint, replay, twin brain, accuracy center, Lab, coach, 3D landing, synthetic population dataset and trained models. Original repo: `SDP42/parallel`. |
 | v0.2.0 | Routine-aware twin (7-step onboarding, schedule, deadlines, tool vs nag apps), ongoing inputs on Today, time machine, doppelgänger, auto-reply drafts, PWA + Capacitor Android/iOS, brain-first landing, Word report. |
-| v0.3.0 (this repo) | **Phone-first playful layer.** Batch 1: swipe triage deck, held-pings jar, drag-to-fork, energy battery, haptic language. Batch 2: guess before reveal, raining futures, dominoes, holo badge cards + binder, inbox receipt. Then **Door to the Future** (comic peek), **Texts from future you**, and the **`/demo` phone animation**. Docs rewritten. Moved to `vizsh/Parallel`. |
+| v0.4.0 | Shields (Manipulation X-ray, re-engagement shield, late-night guard), aura & fate meter, peephole, plot-twist panel, Simulations (5 scenarios + recorded videos), rebuilt coach with memory, follow-ups and optional Claude. Full list: [FEATURE_LIST.md](FEATURE_LIST.md). |
+| v0.3.0 | **Phone-first playful layer.** Batch 1: swipe triage deck, held-pings jar, drag-to-fork, energy battery, haptic language. Batch 2: guess before reveal, raining futures, dominoes, holo badge cards + binder, inbox receipt. Then **Door to the Future** (comic peek), **Texts from future you**, and the **`/demo` phone animation**. Docs rewritten. Moved to `vizsh/Parallel`. |
 
 How the v0.3 work was decided (from the conversation that produced it):
 - The team asked whether the UI fits a phone app. Answer: the layout was already responsive with a tab bar and safe areas, but interactions were desktop-ish (buttons and sliders). So the plan became “make every core decision a thumb gesture with a distinct haptic”.
@@ -77,10 +78,11 @@ How the v0.3 work was decided (from the conversation that produced it):
 | Door to the Future (doors, story viewer, ending, share) | `frontend/src/components/FuturePeek.tsx` |
 | Comic drawings + share poster (pure SVG) | `frontend/src/components/ComicArt.tsx` |
 | Future texts thread | `frontend/src/components/FutureTexts.tsx` |
-| Phone demo animation | `frontend/src/components/PhoneDemo.tsx`, page `frontend/src/pages/Demo.tsx` (`/demo`) |
+| Simulations: scenario data / player / picker | `frontend/src/lib/scenarios.ts`, `components/PhoneDemo.tsx`, `components/SimulationPicker.tsx`; pages `app/Simulations.tsx`, `pages/Demo.tsx` |
+| X-ray chips, aura & fate | `components/Xray.tsx`, `components/AuraFate.tsx` |
 | Pages | `frontend/src/app/*.tsx` (Today = `Home.tsx`, Multiverse = `Simulator.tsx`) |
 
-Backend: `backend/app/main.py` (routes, auth, sample queue), `twin.py` (simulation and decisions), `routine.py` (schedule rules), `population.py` (model loading/blending), `gamify.py` (XP, capabilities, archetypes), `ml/dataset.py`, `ml/train.py`.
+Backend: `backend/app/main.py` (routes, auth, sample queue, `apply_rules` shields, aura/fate), `tactics.py` (X-ray), `assistant.py` (coach engine + facts sheet), `llm_coach.py` (optional Claude), `twin.py` (simulation and decisions), `routine.py` (schedule rules), `population.py` (model loading/blending), `gamify.py` (XP, capabilities, archetypes), `ml/dataset.py`, `ml/train.py`.
 
 ## 6. Conventions
 **Styling**

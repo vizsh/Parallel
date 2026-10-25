@@ -7,6 +7,9 @@ import { CardBinder, HoloCard } from '@/components/BadgeCard'
 import Dominoes from '@/components/Dominoes'
 import ForkDrag from '@/components/ForkDrag'
 import FuturePeek from '@/components/FuturePeek'
+import Xray from '@/components/Xray'
+import { PanelArt, PH, PW } from '@/components/ComicArt'
+import { plotTwist, type Tactic } from '@/lib/future'
 import FuturesRain from '@/components/FuturesRain'
 import { GuessGate, GuessResult } from '@/components/GuessGame'
 import Universes from '@/components/Universes'
@@ -18,7 +21,7 @@ import { useAuth } from '@/lib/auth'
 import { toast, useApi } from '@/lib/hooks'
 import { useSeo } from '@/lib/seo'
 
-type SimX = Sim & { prediction_id: number; model_version: string; abstained: boolean; universes: { a: { name: string; line: string }; b: { name: string; line: string } }
+type SimX = Sim & { xray?: Tactic[]; usually?: string | null; guard?: string | null; prediction_id: number; model_version: string; abstained: boolean; universes: { a: { name: string; line: string }; b: { name: string; line: string } }
   population?: { version: string; p_open: number; cost_p50: number; cost_p10: number; cost_p90: number; counterfactual_effect_min: number }
   blend?: { personal_weight: number; p_open: number; cost_p50: number } }
 type Verdict = { predicted: number; actual: number; within_range: boolean; message: string } | null
@@ -84,7 +87,7 @@ export default function Simulator() {
   async function run() {
     setBusy(true); setDecided(null); setVerdict(null); setActual(''); setGuess(null); setSkipped(false); setCard(null)
     try {
-      const s = await api<SimX>('/simulations', { body: { category: cat, hour, depth, fatigue, minutes_in: minutesIn } })
+      const s = await api<SimX>('/simulations', { body: { category: cat, hour, depth, fatigue, minutes_in: minutesIn, text: CATEGORIES.find((c) => c.key === cat)?.text } })
       setSim(s); setPlay((p) => p + 1)
     } catch (e) { toast((e as Error).message, 'chaos') } finally { setBusy(false) }
   }
@@ -119,6 +122,7 @@ export default function Simulator() {
   const future = useMemo(() => sim && ({
     category: sim.category, app: meta.app, text: meta.text, task: sim.context.task, hour: sim.context.hour,
     cost: sim.allow.cost_expected, p10: sim.allow.cost_p10, p90: sim.allow.cost_p90, holdCost: sim.delay.cost_expected,
+    xray: sim.xray, usually: sim.usually,
   }), [sim, meta])
   const recLabel = { allow: 'Let it through', delay: 'Hold it until your checkpoint', summarize: 'Add it to your digest', ask: 'Your call' }
 
@@ -169,6 +173,7 @@ export default function Simulator() {
                 <div className="flex-1 min-w-[220px]">
                   <p className="font-medium">{meta.text}</p>
                   <p className="small text-muted">{meta.app} · {fmtHour(sim.context.hour)} · {sim.context.task.toLowerCase()} · model {sim.model_version}</p>
+                  <div className="mt-2"><Xray tags={sim.xray} usually={sim.usually} guard={sim.guard} /></div>
                 </div>
                 <div className="text-right">
                   <p className="small text-muted">Twin’s call</p>
@@ -234,6 +239,15 @@ export default function Simulator() {
                         <p className="flex items-center gap-2 font-semibold">{verdict.within_range ? <CheckCircle2 size={18} /> : <Sparkles size={18} />} {verdict.message}</p>
                         <p className="small mt-1">Predicted {verdict.predicted} min · actual {verdict.actual} min. Your twin will use this.</p>
                       </motion.div>
+                    )}
+                    {verdict && !verdict.within_range && (
+                      <motion.figure initial={{ rotate: -6, scale: 0.7, opacity: 0 }} animate={{ rotate: -1.5, scale: 1, opacity: 1 }} transition={{ type: 'spring', stiffness: 220, damping: 14, delay: 0.3 }}
+                        className="mt-4 mx-auto max-w-[300px]">
+                        <svg viewBox={`0 0 ${PW} ${PH}`} className="w-full h-auto" role="img" aria-label="Plot twist panel: the twin admits it was wrong">
+                          <PanelArt p={plotTwist(verdict.predicted, verdict.actual, sim.context.hour)} f={future!} uid="plottwist" />
+                        </svg>
+                        <figcaption className="small text-muted text-center mt-2">Panel 5: the plot twist. Your twin learns from it.</figcaption>
+                      </motion.figure>
                     )}
                   </motion.form>
                 )}

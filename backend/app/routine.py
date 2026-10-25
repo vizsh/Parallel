@@ -11,7 +11,7 @@ from datetime import date, datetime
 
 from .personas import focus_curve
 
-DEFAULT = dict(wake=7.5, bed=23.5, chronotype="neutral", blocks=[], deadlines=[], tools=[], nags=[])
+DEFAULT = dict(wake=7.5, bed=23.5, chronotype="neutral", blocks=[], deadlines=[], tools=[], nags=[], night_guard=True)
 HOLD_KINDS = {"class", "work", "lab", "exam", "meeting", "study"}
 DAY_NAMES = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 
@@ -125,6 +125,18 @@ def check_moments(profile: dict | None, now: datetime | None = None, golden: tup
             seen.add(m["at"])
             uniq.append(m)
     return uniq[:4]
+
+
+def night_guard_active(profile: dict | None, hour: float) -> bool:
+    """Late-night guard: from 30 minutes before bed until wake, only VIPs and urgent pings get through."""
+    p = merge(profile)
+    if not p.get("night_guard", True):
+        return False
+    wake, bed = float(p["wake"]), float(p["bed"])
+    start = (bed - 0.5) % 24
+    if start > wake:  # e.g. 23:00 → 07:30, wrapping past midnight
+        return hour >= start or hour < wake
+    return start <= hour < wake
 
 
 def classify_app(profile: dict | None, app: str) -> str:

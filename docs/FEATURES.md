@@ -109,6 +109,8 @@ Status against the 75-item backlog: ✅ built · 🟡 partial or simulated · �
 | PWA + Capacitor Android/iOS, phone tab bar with More sheet | ✅ | `frontend/android`, `frontend/ios`, `public/sw.js` |
 | Android NotificationListener plugin | 🗺️ | see `docs/MOBILE.md` |
 
+The complete, current list with how each feature works is in **[FEATURE_LIST.md](FEATURE_LIST.md)**.
+
 ## v0.3 additions (phone-first layer)
 | Feature | Status | Where |
 |---|---|---|

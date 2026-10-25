@@ -8,7 +8,7 @@ import { onSpeakingChange, speak as speakText, stop as stopSpeech } from '@/lib/
 import { LANGS } from '@/lib/i18n'
 import { ForkMark } from './Brand'
 
-type Msg = { role: 'user' | 'twin'; text: string; card?: { type: string; category?: string } | null }
+type Msg = { role: 'user' | 'twin'; text: string; card?: { type: string; category?: string } | null; suggest?: string[]; source?: 'claude' | 'rules' }
 
 const CARD_LINKS: Record<string, { to: string; label: string }> = {
   simulate: { to: '/app/multiverse', label: 'Open in Multiverse' },
@@ -19,7 +19,7 @@ const CARD_LINKS: Record<string, { to: string; label: string }> = {
 }
 
 const SUGGEST: Record<string, string[]> = {
-  en: ['Should I open this Instagram like?', 'When do I focus best?', 'Which app distracts me most?', 'Am I tired?', 'What do you recommend?'],
+  en: ['Should I open this Instagram like?', 'What should I do right now?', 'Plan my evening', 'How much time did I lose this week?', 'Instagram vs YouTube?', 'How do I stop doomscrolling?'],
   hi: ['क्या मैं यह इंस्टा लाइक खोलूं?', 'मैं कब सबसे अच्छा फोकस करता हूँ?', 'कौन सा ऐप ध्यान भटकाता है?', 'क्या मैं थक गया हूँ?'],
   mr: ['ही इन्स्टा सूचना उघडू का?', 'माझा फोकस कधी सर्वोत्तम असतो?', 'कोणते ॲप लक्ष विचलित करते?', 'मी थकलो आहे का?'],
   es: ['¿Debería abrir este me gusta de Instagram?', '¿Cuándo me concentro mejor?', '¿Qué app me distrae más?', '¿Estoy cansado?'],
@@ -71,12 +71,12 @@ export function useCoach() {
     reqRef.current?.abort()
     const ctrl = new AbortController()
     reqRef.current = ctrl
-    const timer = window.setTimeout(() => ctrl.abort(), 15000)
+    const timer = window.setTimeout(() => ctrl.abort(), 25000)
     setMsgs((m) => [...m, { role: 'user', text }])
     setBusy(true)
     try {
-      const r = await api<{ reply: string; card: Msg['card'] }>('/assistant', { body: { text, lang }, signal: ctrl.signal })
-      setMsgs((m) => [...m, { role: 'twin', text: r.reply, card: r.card }])
+      const r = await api<{ reply: string; card: Msg['card']; suggest?: string[]; source?: Msg['source'] }>('/assistant', { body: { text, lang }, signal: ctrl.signal })
+      setMsgs((m) => [...m, { role: 'twin', text: r.reply, card: r.card, suggest: r.suggest, source: r.source }])
       if (speak) speakText(r.reply, speechLang)
     } catch (e) {
       if (ctrl.signal.aborted && reqRef.current !== ctrl) return // superseded by a newer question
@@ -182,9 +182,22 @@ export function CoachChat({ coach, tall = false }: { coach: ReturnType<typeof us
             {m.card && CARD_LINKS[m.card.type] && (
               <Link to={CARD_LINKS[m.card.type].to + (m.card.category ? `?category=${m.card.category}` : '')} className="mt-2 inline-block small underline text-calm">{CARD_LINKS[m.card.type].label}</Link>
             )}
+            {m.role === 'twin' && m.source && <span className="block mt-1.5 text-[10px] uppercase tracking-wider text-muted">{m.source === 'claude' ? 'Claude · grounded in your numbers' : 'Twin · from your models'}</span>}
           </motion.div>
         ))}
-        {coach.busy && <div className="self-start bg-surface-2 px-4 py-3 small text-muted">Thinking with your data…</div>}
+        {!coach.busy && (() => { // follow-up chips under the latest reply, so a conversation keeps going with one tap
+          const last = coach.msgs[coach.msgs.length - 1]
+          return last?.role === 'twin' && last.suggest?.length ? (
+            <div className="flex flex-wrap gap-1.5 -mt-1">
+              {last.suggest.map((s) => <button key={s} onClick={() => coach.ask(s)} className="rounded-full border border-surface-2 hover:border-calm px-3 py-1.5 small">{s}</button>)}
+            </div>
+          ) : null
+        })()}
+        {coach.busy && (
+          <div className="self-start bg-surface-2 px-4 py-3 flex gap-1" aria-label="Thinking with your data">
+            {[0, 1, 2].map((i) => <motion.span key={i} className="w-1.5 h-1.5 rounded-full bg-muted" animate={{ y: [0, -4, 0] }} transition={{ repeat: Infinity, duration: 0.9, delay: i * 0.15 }} />)}
+          </div>
+        )}
         <div ref={end} />
       </div>
       <form className="mt-3 flex gap-2" onSubmit={(e) => { e.preventDefault(); coach.ask(text); setText('') }}>

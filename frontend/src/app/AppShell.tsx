@@ -2,7 +2,7 @@ import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-do
 import { useTranslation } from 'react-i18next'
 import { AnimatePresence, motion } from 'motion/react'
 import { useState } from 'react'
-import { Activity, Brain, Grid2x2, X, Database, FlaskConical, Fingerprint, GitFork, Inbox, LayoutDashboard, LogOut, MessageCircle, PlayCircle, Settings, Target } from 'lucide-react'
+import { Activity, Brain, Clapperboard, Grid2x2, X, Database, FlaskConical, Fingerprint, GitFork, Inbox, LayoutDashboard, LogOut, MessageCircle, PlayCircle, Settings, Target } from 'lucide-react'
 import { LangSwitch, Wordmark } from '@/components/Brand'
 import VoiceCoachFab from '@/components/VoiceCoach'
 import { useAuth } from '@/lib/auth'
@@ -13,6 +13,7 @@ export const NAV = [
   { to: '/app', key: 'home', icon: LayoutDashboard, end: true },
   { to: '/app/multiverse', key: 'simulator', icon: GitFork },
   { to: '/app/inbox', key: 'inbox', icon: Inbox },
+  { to: '/app/simulations', key: 'simulations', icon: Clapperboard },
   { to: '/app/fingerprint', key: 'fingerprint', icon: Fingerprint },
   { to: '/app/replay', key: 'replay', icon: PlayCircle },
   { to: '/app/brain', key: 'brain', icon: Brain },

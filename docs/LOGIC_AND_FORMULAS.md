@@ -246,6 +246,18 @@ Features add weekday, focus capacity, recent switches, pings in the last hour, V
 
 ---
 
+## 7b. Shields, aura and fate (`main.py`, `routine.py`, `tactics.py`)
+
+| Feature | Formula / rule |
+|---|---|
+| **Rule order** | VIP or “always” → allow · “digest” → digest · “never” → hold · re-engagement shield · late-night guard · otherwise the twin's decision |
+| **Re-engagement shield** | X-ray finds the re-engagement tactic and importance < 0.75 → digest |
+| **Late-night guard** | active when `hour ≥ bed − 0.5` or `hour < wake` (wrapping past midnight) and `night_guard` is on; importance < 0.75 and the twin wasn't already holding → hold |
+| **X-ray** | regular-expression patterns per tactic on the wording (in memory only); video suggestions always count as algorithm bait |
+| **Aura per decision** | hold/digest: `clip(25 · minutes saved, 50, 500)`; allow with predicted cost < 5: +50; otherwise 0; reality check reported: +100; allowed and actual ≥ 20 min: −1000 |
+| **Aura tiers (week)** | < 0 NPC era · 0–999 Side quest · 1000–2999 Main character loading · ≥ 3000 Main character |
+| **Fate (today)** | mean over today's decisions of: hold/digest +1; allow cost < 5 +0.5; allow cost ≥ 15 −1; else 0; minus 1 more for a confirmed doomscroll; clipped to [−1, 1]. ≤ −0.33 Scrollfather arc, ≥ 0.33 Main Character arc |
+
 ## 8. The phone layer (frontend)
 
 | Feature | Logic |
