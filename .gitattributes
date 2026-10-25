@@ -5,3 +5,5 @@ frontend/android/gradlew text eol=lf
 *.jpg binary
 *.pdf binary
 *.docx binary
+*.mp4 binary
+*.gif binary

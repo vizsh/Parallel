@@ -56,6 +56,12 @@ It runs as a **website**, an **installable PWA**, and **Android/iOS apps** (Capa
 
 ## See it on a phone in 15 seconds
 
+<p align="center">
+  <img src="docs/media/parallel-phone-demo.gif" alt="Parallel on a phone: a notification lands, Parallel scores it, peeks both futures, holds it and delivers it at the checkpoint" width="300">
+  <br>
+  <sub>18-second loop · <a href="docs/media/parallel-phone-demo.mp4">full-quality MP4 (1080×1920)</a></sub>
+</p>
+
 Open **`/demo`** (for example `http://localhost:5180/demo`). It's a self-playing phone:
 
 1. You're deep in DBMS notes, focus timer running.
@@ -65,7 +71,7 @@ Open **`/demo`** (for example `http://localhost:5180/demo`). It's a self-playing
 5. You hold it. It drops into the jar until 1:00 PM; focus keeps going.
 6. At 1:00 PM the held pings arrive as one calm batch, and **future you texts back**.
 
-Add `?clean=1` (`/demo?clean=1`) for a recording mode with just the phone and captions. Record it with any screen recorder (Windows: `Win + Alt + R`; macOS: `Cmd + Shift + 5`) to get a video for slides. The Smart inbox has a **See it on a phone** button that opens the same demo.
+Add `?clean=1` (`/demo?clean=1`) for a recording mode with just the phone and captions. Record it with any screen recorder (Windows: `Win + Alt + R`; macOS: `Cmd + Shift + 5`) to get a video for slides. A ready-made recording is in [`docs/media/`](docs/media/). The Smart inbox has a **See it on a phone** button that opens the same demo.
 
 ## Feature tour
 
