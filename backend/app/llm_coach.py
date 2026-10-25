@@ -21,7 +21,9 @@ How to answer:
 - Give one concrete next step when it helps.
 - Opening a ping on purpose is a valid choice. Respect the user's rules (VIPs always pass).
 - Fatigue and stress are behavioural estimates, not medical facts. If someone sounds distressed, be kind and suggest a break or talking to someone they trust; don't diagnose.
-- Questions unrelated to attention, focus, notifications, study or work habits: answer in one friendly line and steer back."""
+- Questions unrelated to attention, focus, notifications, study or work habits: answer in one friendly line and steer back.
+- The app already shows the numbers as cards (listed under CARDS) and offers the buttons listed under ACTIONS. Don't repeat every number; interpret them and point to the most useful button.
+- Tone "genz": casual, lowercase is fine, light slang, at most one emoji. Tone "plain": friendly and clear, no slang."""
 
 
 def enabled() -> bool:
@@ -47,7 +49,7 @@ def _get_client():
     return _client
 
 
-def reply(facts: dict, history: list[dict], text: str, lang: str) -> str | None:
+def reply(facts: dict, history: list[dict], text: str, lang: str, tone: str = "plain", shown: dict | None = None) -> str | None:
     """Return Claude's reply, or None so the caller falls back to the rule engine."""
     import anthropic
     messages = []
@@ -60,7 +62,10 @@ def reply(facts: dict, history: list[dict], text: str, lang: str) -> str | None:
         messages.pop()
     while messages and messages[0]["role"] != "user":
         messages.pop(0)
-    messages.append({"role": "user", "content": f"FACTS (from the user's own models, {lang=}):\n{json.dumps(facts, default=str)}\n\nQUESTION: {text}"})
+    cards = [c.get("type") for c in (shown or {}).get("cards", [])]
+    acts = [a.get("label") for a in (shown or {}).get("actions", [])]
+    messages.append({"role": "user", "content": f"FACTS (from the user's own models, {lang=}, {tone=}):\n{json.dumps(facts, default=str)}\n"
+                                                f"CARDS: {cards}\nACTIONS: {acts}\n\nQUESTION: {text}"})
     try:
         resp = _get_client().beta.messages.create(
             model=MODEL,

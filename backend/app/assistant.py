@@ -22,6 +22,8 @@ INTENTS = {
                  "नोटिफिकेशन", "उघडू", "सूचना", "permitir", "abrir", "notificación", "debería abrir"],
     "compare": [" vs ", "versus", "compare", "worse", "better than", "which is worse"],
     "why": ["why", "how come", "reason", "explain", "क्यों", "por qué"],
+    "cant_focus": ["can't focus", "cant focus", "can't study", "cant study", "cannot focus", "can't concentrate", "unproductive",
+                   "procrastinat", "not able to study", "distracted today", "wasting my day", "can't get anything done"],
     "now": ["right now", "what should i do", "should i study", "should i work", "start now", "focus now", "can i focus", "now"],
     "plan": ["plan", "schedule", "tonight", "this evening", "tomorrow", "my day", "routine", "timetable"],
     "deadline": ["exam", "deadline", "test", "assignment", "submission", "due", "परीक्षा", "examen"],
@@ -29,7 +31,7 @@ INTENTS = {
     "distraction": ["distract", "biggest", "worst app", "which app", "breaks my", "ध्यान भटक", "कौन सा ऐप", "कोणते ॲप", "distrae", "qué app"],
     "doomscroll": ["doomscroll", "scrolling", "addicted", "can't stop", "cant stop", "reels", "shorts", "stop using", "quit", "rabbit hole"],
     "time_lost": ["how much time", "time lost", "wasted", "lose", "lost", "saved", "how many minutes", "this week", "debt"],
-    "fatigue": ["tired", "fatigue", "break", "exhausted", "sleepy", "drained", "थक", "आराम", "ब्रेक", "थकलो", "cansad", "descanso"],
+    "fatigue": ["so tired", "always tired", "tired", "fatigue", "break", "exhausted", "sleepy", "drained", "थक", "आराम", "ब्रेक", "थकलो", "cansad", "descanso"],
     "sleep": ["sleep", "late night", "bed", "insomnia", "night guard", "midnight", "नींद", "झोप", "dormir"],
     "stress": ["stressed", "stress", "anxious", "anxiety", "overwhelmed", "burnout", "burnt out", "sad", "panic"],
     "aura": ["aura", "xp", "level", "streak", "points", "score", "fate", "main character", "npc"],
@@ -219,6 +221,12 @@ FOLLOW = {
     "thanks": ["Plan my evening", "What's my aura?"],
     "capabilities": ["Should I open this Instagram like?", "What should I do right now?", "How much time did I lose this week?"],
     "help": ["Should I open this Instagram like?", "What should I do right now?", "Which app distracts me most?"],
+    "cant_focus": ["Why is it so hard today?", "Show today's receipt", "Make this my routine"],
+    "receipt": ["Show my week", "Which app costs me most?", "Plan my evening"],
+    "receipt_week": ["Which app costs me most?", "What do you recommend?", "Plan tomorrow"],
+    "xray": ["Show today's receipt", "What's waiting in my jar?"],
+    "memory": ["How accurate are you?", "Plan my evening"],
+    "action": ["What's waiting in my jar?", "Show today's receipt", "Plan my evening"],
 }
 
 
@@ -226,6 +234,7 @@ def answer(twin: Twin, text: str, lang: str, persona: str, stats: dict, vip: set
     """Rule engine. `ctx` carries the conversation (history with intent/category), the held count and VIPs.
     Intents outside the original seven answer in English; the Claude coach covers every language."""
     ctx = ctx or {}
+    text = text.replace("’", "'").replace("‘", "'")
     lang = lang if lang in LANGS else "en"
     L, E = T[lang], T["en"]
     pline = PERSONA_LINE.get(persona, PERSONA_LINE["developer"])[lang]
@@ -235,13 +244,17 @@ def answer(twin: Twin, text: str, lang: str, persona: str, stats: dict, vip: set
     cats = detect_all(text, CATEGORY_WORDS)
     cat = cats[0] if cats else None
     intent = detect(text, INTENTS)
+    if intent == "why":  # "why am I so tired" is about fatigue, not about a ping
+        intent = detect(text, {k: v for k, v in INTENTS.items() if k != "why"}) or "why"
     words = len(text.split())
+    if ctx.get("force_intent"):  # slash commands like /plan pick the intent directly
+        intent = ctx["force_intent"]
     # follow-ups: "and youtube?" after a simulation, "why?" after anything about a ping
     if len(cats) >= 2 and intent in (None, "compare", "simulate", "distraction"):
         intent = "compare"
     elif cat and intent in (None, "simulate", "today", "now", "greet"):
         intent = "simulate"
-    elif not intent and words <= 4 and last_intent:
+    elif not intent and words <= 4 and last_intent and not ctx.get("force_intent"):
         intent = last_intent
     card, used_cat = None, cat
 
@@ -286,6 +299,20 @@ def answer(twin: Twin, text: str, lang: str, persona: str, stats: dict, vip: set
             msg = (f"{r['why']} What's driving it right now: {push}. That's from {r['similar_events']} similar moments "
                    f"in your history, so I'm {round(r['confidence'] * 100)}% sure.")
             card = dict(type="simulate", category=used_cat)
+    elif intent == "cant_focus":
+        today = date.today().isoformat()
+        segs = [s for s in twin.segments if s["day"] == today]
+        switches = sum(1 for s in segs if s["kind"] == "distraction")
+        lost = {}
+        for n in twin.notifs:
+            if n["day"] == today and n["opened"]:
+                k = n["followed_app"] or n["app"] or "other apps"
+                lost[k] = lost.get(k, 0) + n["cost_min"]
+        top = max(lost.items(), key=lambda kv: kv[1], default=None)
+        c0 = twin.context_now()
+        msg = (f"Today: {switches} app switches and fatigue around {round(c0['fatigue'] * 100)}%"
+               + (f"; {top[0]} alone cost you ~{round(top[1])} min" if top else "")
+               + ". Don't try to fix the whole day: one 25-minute block with pings held, then reassess. Your plan for the rest of today is below.")
     elif intent == "now":
         f = facts(twin, stats, ctx)
         n = f["now"]

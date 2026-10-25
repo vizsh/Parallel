@@ -1,3 +1,5 @@
+import { useEffect, useRef } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Mic, ShieldCheck, Sparkles } from 'lucide-react'
 import { PageHead } from './AppShell'
@@ -19,9 +21,15 @@ export default function Coach() {
   const { t, i18n } = useTranslation()
   const { user } = useAuth()
   const coach = useCoach()
+  const [params, setParams] = useSearchParams()
+  const asked = useRef(false)
+  useEffect(() => { // quick-ask links (home-screen shortcut, nudges): /app/coach?q=...
+    const q = params.get('q')
+    if (q && !asked.current) { asked.current = true; coach.ask(q); setParams({}, { replace: true }) }
+  }, [params, coach, setParams])
   return (
     <>
-      <PageHead title={t('coach.title')} crumbs="Coach" sub="A persona-aware assistant. It answers from your twin’s numbers, never from thin air, in English, हिन्दी, मराठी or Español." />
+      <PageHead title={t('coach.title')} crumbs="Coach" sub="Ask anything about your attention. Answers come as cards you can act on: receipts, plans, the jar, X-rays. Type / for commands." />
       <div className="grid gap-3 xl:grid-cols-12">
         <section className="xl:col-span-8 panel p-5" aria-label="Conversation"><CoachChat coach={coach} tall /></section>
         <div className="xl:col-span-4 flex flex-col gap-3">

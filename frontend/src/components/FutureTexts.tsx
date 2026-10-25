@@ -25,7 +25,7 @@ function Thread({ t, uid, fresh }: { t: FutureText; uid?: number; fresh: boolean
   }, [fresh, t, uid])
   return (
     <li className="flex flex-col items-start gap-1">
-      <p className="text-[11px] text-muted">{fmt(t.at)} · after you {A ? 'opened' : 'held'} {t.app}</p>
+      <p className="text-[11px] text-muted">{fmt(t.at)} · {t.app === 'Reminder' ? 'a reminder you asked for' : `after you ${A ? 'opened' : 'held'} ${t.app}`}</p>
       {t.lines.map((l, i) => (
         <motion.p key={i} initial={fresh && !reduce ? { opacity: 0, y: 8, scale: 0.9 } : false} animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={{ delay: fresh ? 0.3 + i * 0.45 : 0, type: 'spring', stiffness: 400, damping: 26 }}

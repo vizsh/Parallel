@@ -99,3 +99,17 @@ export function useFutureTextPings(uid?: number) {
   }, [list, now])
 }
 
+
+/** A plain reminder in the same thread ("call Riya"), delivered at `at` (ms). */
+export async function queueReminder(uid: number | undefined, text: string, at: number) {
+  const t: FutureText = { id: `${at}-r${Math.random().toString(36).slice(2, 6)}`, side: 'b', app: 'Reminder', at, lines: [`⏰ reminder: ${text}`], read: false }
+  save(uid, [...loadFutureTexts(uid), t])
+  if (isNative()) {
+    try {
+      const { LocalNotifications } = await import('@capacitor/local-notifications')
+      const perm = await LocalNotifications.requestPermissions()
+      if (perm.display === 'granted') await LocalNotifications.schedule({ notifications: [{ id: 7000 + (at % 100000), title: 'Reminder from your coach', body: text, schedule: { at: new Date(at) } }] })
+    } catch { /* reminders are a bonus */ }
+  }
+  return t
+}

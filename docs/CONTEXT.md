@@ -25,6 +25,7 @@ The maths behind every number is in [LOGIC_AND_FORMULAS.md](LOGIC_AND_FORMULAS.m
 |---|---|
 | v0.1.0 (hackathon) | Personal twin, Multiverse simulator, smart inbox, fingerprint, replay, twin brain, accuracy center, Lab, coach, 3D landing, synthetic population dataset and trained models. Original repo: `SDP42/parallel`. |
 | v0.2.0 | Routine-aware twin (7-step onboarding, schedule, deadlines, tool vs nag apps), ongoing inputs on Today, time machine, doppelgänger, auto-reply drafts, PWA + Capacitor Android/iOS, brain-first landing, Word report. |
+| v0.5.0 | The coach becomes a copilot: cards, actions with Undo, slash commands, diagnosis, proactive nudges, memory and commitments ([COACH.md](COACH.md)). |
 | v0.4.0 | Shields (Manipulation X-ray, re-engagement shield, late-night guard), aura & fate meter, peephole, plot-twist panel, Simulations (5 scenarios + recorded videos), rebuilt coach with memory, follow-ups and optional Claude. Full list: [FEATURE_LIST.md](FEATURE_LIST.md). |
 | v0.3.0 | **Phone-first playful layer.** Batch 1: swipe triage deck, held-pings jar, drag-to-fork, energy battery, haptic language. Batch 2: guess before reveal, raining futures, dominoes, holo badge cards + binder, inbox receipt. Then **Door to the Future** (comic peek), **Texts from future you**, and the **`/demo` phone animation**. Docs rewritten. Moved to `vizsh/Parallel`. |
 

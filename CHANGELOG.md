@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.5.0 — the coach becomes a copilot
+### Added
+- **Answers as cards:** ping price (with Peek / Hold / Open), attention receipts (day, week Wrapped-style, per app), compare, plan timeline, evidence, jar, fingerprint, aura, X-ray, memory, reply draft, command list.
+- **Actions with Undo:** hold everything, start a focus block, mute an app until tonight or the exam, a night off from the guard, pour the jar, draft a reply, reminders, remember facts, commitments, experiments.
+- **Commands:** slash commands (`/receipt`, `/week`, `/plan`, `/hold 2h`, `/focus 50`, `/jar`, `/why`, `/xray`, `/aura`, `/me`, `/help`) with a menu, plain-language actions, and paste-a-notification X-ray.
+- **Problem diagnosis:** “I can't focus” → evidence from your data, one fix, today's plan; “why am I tired” → last five nights vs bedtime.
+- **Proactive nudges:** at most 3 a day (golden hours, checkpoint, late night, exam morning, rabbit hole, slipped commitment, finished experiment, weekly), each mutable.
+- **Memory:** “what do you know about me” as an editable card; commitments are checked the next day.
+- **Tone switch** (Plain / Gen Z), time-of-day chips, home-screen quick-ask shortcuts, Claude told which cards are on screen.
+- **Temporary rules** (`coach_overrides`) applied on every decision; `GET /api/coach/overrides`.
+- Docs: `docs/COACH.md`.
+
 ## v0.4.0 — shields, simulations and a coach that actually talks
 ### Added
 - **Simulations:** five self-playing phone scenarios (study session, developer in flow, 1 AM doomscroll, exam-week group chat, the “we miss you” trap) at `/app/simulations` and `/demo`, each recorded as a 1080×1920 MP4 in `frontend/public/simulations/`.

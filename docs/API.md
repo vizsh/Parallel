@@ -31,7 +31,12 @@ Authentication is `Authorization: Bearer <token>`, from sign-in, sign-up or a de
 | GET | /outcomes · /digest | Predictions vs reality; deferred queue |
 | POST | /digest/release | Deliver the queued digest now |
 | GET | /experiments · /models · /data-quality | Randomized effects with confidence intervals; drift; data quality |
-| POST | /assistant | Coach (`{text, lang}`). Remembers the last 8 messages; returns `reply`, `intent`, `category`, `card`, `suggest` (follow-up chips) and `source` (`rules` or `claude`) |
+| POST | /assistant | Coach (`{text, lang}`). Remembers the last 8 messages; returns `headline`, `reply`, `cards`, `actions`, `done`, `intent`, `category`, `suggest` (follow-up chips) and `source` (`rules` or `claude`); accepts `tone` (`plain`/`genz`) and slash commands |
+| POST | /coach/action | Run a coach action (`hold_all`, `start_block`, `mute`, `night_off`, `release_digest`, `draft_reply`, `remember`, `commit_stop`, `set_wind_down`, `start_experiment`, `keep_rule`, `forget`, `undo`); returns `{ok, message, undo?}` |
+| GET | /coach/receipt?period=day\|week&app= | Attention receipt card data |
+| GET | /coach/overrides | Active temporary rules set through the coach |
+| GET, POST | /coach/nudge · /coach/nudge/{id} | Next proactive nudge (budget 3/day; `?force=<kind>` for demos); respond `accept` / `dismiss` / `fewer` |
+| GET | /coach/commands 🌐 | Slash commands |
 | GET | /assistant/mode 🌐 | Whether the coach is using Claude (API key configured) or the built-in engine |
 
 ## Routine & ongoing inputs

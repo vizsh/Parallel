@@ -25,6 +25,7 @@ from .tactics import is_reengagement, unmask, xray
 from . import history as hist
 from . import population
 from . import routine
+from . import overrides
 from .twin import _cache as _twin_cache, get_twin
 from .gamify import CAPABILITIES, checkpoint_after, streak, world_state, xp_for
 from datetime import date, datetime
@@ -98,6 +99,7 @@ with closing(db()) as c:
 
 with closing(db()) as c:
     hist.ensure_schema(c)
+    overrides.ensure_schema(c)
 
 
 def hash_pw(pw: str, salt: str) -> str:
@@ -357,9 +359,17 @@ def apply_rules(u, t, category: str, hour: float, text: str | None, rec: str, wh
     if mode == "never":
         return "delay", "You muted this category. It waits in the queue until you look.", None
     importance = t.learned_importance.get(category, CATEGORIES[category]["importance"])
+    with closing(db()) as c:
+        active = overrides.active(c, u["id"])
+    for o in active:  # temporary rules you set through the coach
+        if o["kind"] == "hold_all" and importance < 0.75:
+            return "delay", f"Focus block until {datetime.fromtimestamp(o['until']).strftime('%I:%M %p').lstrip('0')} (you asked the coach). Only VIPs get through.", "focus"
+        if o["kind"] == "mute" and o["category"] == category:
+            return "delay", f"{o['label']} until {datetime.fromtimestamp(o['until']).strftime('%I:%M %p').lstrip('0')} (you asked the coach).", "mute"
     if is_reengagement(xray(text, category)) and importance < 0.75:
         return "summarize", "Re-engagement shield: this ping exists because you've been away, not because something happened. Digest.", "reengagement"
-    if importance < 0.75 and rec != "delay" and routine.night_guard_active(t.profile, hour):
+    night_off = any(o["kind"] == "night_off" for o in active)
+    if importance < 0.75 and rec != "delay" and not night_off and routine.night_guard_active(t.profile, hour):
         bed = routine.fmt(float(routine.merge(t.profile)["bed"]) - 0.5)
         return "delay", f"Late-night guard: after {bed} only VIPs and urgent things get through. It'll be in your morning digest.", "night"
     return rec, why, None
@@ -592,6 +602,7 @@ def list_sessions(u=Depends(current_user)):
 class Ask(BaseModel):
     text: str = Field(min_length=1, max_length=500)
     lang: str = "en"
+    tone: str = "plain"
 
 
 @app.post("/api/assistant")
@@ -604,9 +615,15 @@ def assistant(body: Ask, u=Depends(current_user)):
     history = [dict(role=r["role"], text=r["text"], intent=(r["intent"] or "").split("|")[0] or None,
                     category=((r["intent"] or "").split("|") + [""])[1] or None) for r in rows]
     ctx = dict(history=history, held=held, vip=vip, persona=u["persona"])
-    res = answer(t, body.text, body.lang, u["persona"], stats, vip, ctx)
-    if llm_coach.enabled():
-        better = llm_coach.reply(coach_facts(t, stats, ctx), history, body.text, body.lang)
+    res = copilot.command(u, t, body.text, body.lang)  # slash commands and "hold everything for 2h"-style requests act first
+    if res and res.get("force_intent"):
+        ctx["force_intent"], res = res["force_intent"], None
+    if res is None:
+        res = answer(t, body.text, body.lang, u["persona"], stats, vip, ctx)
+    stats = stats_for(u) if res.get("done") else stats
+    res = copilot.enrich(res, u, t, stats, body.text, body.tone)
+    if llm_coach.enabled() and res["intent"] not in ("action",):
+        better = llm_coach.reply(coach_facts(t, stats, ctx), history, body.text, body.lang, body.tone, res)
         if better:
             res.update(reply=better, source="claude")
     tag = res["intent"] + (f"|{res['category']}" if res.get("category") else "")
@@ -1045,7 +1062,9 @@ def health():
 
 # Platform features (budget, debt, reservations, developer API, audit, rooms, planner, habits, team, companion)
 from .platform_api import audit, router as platform_router  # noqa: E402
+from . import copilot  # noqa: E402
 from .routine_api import router as routine_router  # noqa: E402
 
 app.include_router(platform_router)
 app.include_router(routine_router)
+app.include_router(copilot.router)

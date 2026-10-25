@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from 'motion/react'
 import { useState } from 'react'
 import { Activity, Brain, Clapperboard, Grid2x2, X, Database, FlaskConical, Fingerprint, GitFork, Inbox, LayoutDashboard, LogOut, MessageCircle, PlayCircle, Settings, Target } from 'lucide-react'
 import { LangSwitch, Wordmark } from '@/components/Brand'
+import CoachNudge from '@/components/CoachNudge'
 import VoiceCoachFab from '@/components/VoiceCoach'
 import { useAuth } from '@/lib/auth'
 import { useToasts } from '@/lib/hooks'
@@ -123,7 +124,8 @@ export default function AppShell() {
           </>
         )}
       </AnimatePresence>
-      <VoiceCoachFab />
+      <CoachNudge />
+      {!loc.pathname.startsWith('/app/coach') && <VoiceCoachFab />}
       <Toasts />
       <span className="sr-only"><Activity /></span>
     </div>

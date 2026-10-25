@@ -63,7 +63,17 @@ Status: ✅ built and tested in a browser · 🟡 built, needs a real phone to v
 | **Texts from future you** | Each decision queues a chat from “you, N minutes from now”, timed to the predicted cost; local notification in the native app | ✅ / 🟡 native |
 | **XP, levels, world, streaks** | XP for intentional choices with anti-farming rules; streaks forgive one day a week; the world grows from desk to orbit | ✅ |
 
-## 6. The coach (rebuilt in v0.4)
+## 6. The coach copilot (v0.5; details in [COACH.md](COACH.md))
+| Feature | How it works | Status |
+|---|---|---|
+| **Answers as cards** | Receipts (day / week / app), ping price with Peek-Hold-Open, compare, plan, evidence, jar, fingerprint, aura, X-ray, memory, drafts | ✅ |
+| **Acts for you** | Hold everything, focus blocks, mutes until tonight or the exam, night off, pour the jar, drafts, reminders; every action has Undo | ✅ |
+| **Commands** | Slash commands with a menu; plain-language actions; pasted notifications become an X-ray | ✅ |
+| **Diagnosis** | “I can't focus” and “why am I tired” answered with evidence, one fix and a plan | ✅ |
+| **Proactive nudges** | Max 3 a day, 8 kinds, “fewer of these” per kind, demo mode | ✅ |
+| **Memory & commitments** | Editable “what I know about you”; commitments checked the next day; experiments report back | ✅ |
+
+## 6b. The coach basics (v0.4)
 | Feature | How it works | Status |
 |---|---|---|
 | **25 question types** | Ping advice, compare two apps, why, what now, plan my evening, exams, best time, distractions, doomscrolling help, time lost this week, fatigue, sleep, stress (gentle, non-medical), aura, what's held, privacy, how it works/accuracy, rules, recommendations, greetings, thanks, off-topic | ✅ |

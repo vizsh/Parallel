@@ -8,16 +8,52 @@
   "orientation": "portrait",
   "background_color": "#18191b",
   "theme_color": "#18191b",
-  "categories": ["productivity", "health"],
+  "categories": [
+    "productivity",
+    "health"
+  ],
   "icons": [
-    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" },
-    { "src": "/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
-    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml" }
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
   ],
   "shortcuts": [
-    { "name": "Multiverse", "url": "/app/multiverse" },
-    { "name": "Smart inbox", "url": "/app/inbox" },
-    { "name": "Twin coach", "url": "/app/coach" }
+    {
+      "name": "What should I do now?",
+      "short_name": "Now",
+      "url": "/app/coach?q=What%20should%20I%20do%20right%20now%3F"
+    },
+    {
+      "name": "Today's receipt",
+      "short_name": "Receipt",
+      "url": "/app/coach?q=%2Freceipt"
+    },
+    {
+      "name": "Hold everything for 1 hour",
+      "short_name": "Hold 1h",
+      "url": "/app/coach?q=%2Fhold%201h"
+    },
+    {
+      "name": "Smart inbox",
+      "url": "/app/inbox"
+    }
   ]
 }

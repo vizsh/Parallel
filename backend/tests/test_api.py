@@ -55,7 +55,7 @@ def test_assistant_multilingual():
     h = auth()
     for lang, q in [("en", "Should I open this instagram like?"), ("hi", "मैं कब सबसे अच्छा फोकस करता हूँ?"), ("es", "¿Qué app me distrae más?")]:
         r = client.post("/api/assistant", json={"text": q, "lang": lang}, headers=h).json()
-        assert r["lang"] == lang and len(r["reply"]) > 10
+        assert r["lang"] == lang and len(r["reply"] or r.get("headline") or "") > 10
 
 
 def test_events_dedupe_and_privacy():
@@ -117,3 +117,21 @@ def test_routine_schedule_and_inputs():
     assert r["stored_segments"] == 1
     assert client.get("/api/twin/timemachine", headers=h).json()["extra_focus_hours"] >= 0
     assert "text" in client.get("/api/autoreply?category=social_dm&lang=mr", headers=h).json()
+
+
+def test_coach_copilot_cards_actions_and_nudges():
+    h = auth()
+    ask = lambda q, tone="plain": client.post("/api/assistant", json={"text": q, "lang": "en", "tone": tone}, headers=h).json()
+    assert [c["type"] for c in ask("/receipt")["cards"]] == ["receipt"]
+    assert ask("/week")["cards"][0]["period"] == "week"
+    r = ask("should I open this instagram like?", "genz")
+    assert r["cards"][0]["type"] == "ping" and [a["kind"] for a in r["actions"]][:1] == ["peek"] and r["headline"]
+    assert {c["type"] for c in ask("I can't focus today")["cards"]} == {"evidence", "plan"}
+    assert ask("/xray You have 9 new notifications. See what you missed 👀")["cards"][0]["tags"]
+    done = ask("hold everything for 30 minutes")["done"]
+    assert done["ok"] and done["undo"]["kind"] == "override"
+    sim = client.post("/api/simulate", json={"category": "social_like"}, headers=h).json()
+    assert sim["recommendation"] == "delay" and sim["guard"] == "focus"
+    client.post("/api/coach/action", json={"kind": "undo", "payload": done["undo"]}, headers=h)
+    assert client.get("/api/coach/overrides", headers=h).json() == []
+    assert client.get("/api/coach/nudge?force=golden_soon", headers=h).json()["title"]
