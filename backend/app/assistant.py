@@ -47,7 +47,7 @@ T = {
         "rec": "Top move: {t}. It should save about {i} min a day ({ev}).",
         "learned": "In {days} days I've learned from {n} events. I'm {imp}% better than a generic notification rule at predicting what you'll open.",
         "help": "Ask me things like: 'Should I open this Instagram like?', 'When do I focus best?', 'Which app distracts me most?', or 'Am I tired?'",
-        "rec_words": {"allow": "let it through", "delay": "hold it until your next checkpoint", "summarize": "add it to your digest"},
+        "rec_words": {"allow": "let it through", "delay": "hold it until your next checkpoint", "summarize": "add it to your digest", "ask": "decide yourself: there isn't enough evidence for this moment yet"},
         "fatigue_hi": "Take a 10-minute walk before your next block.", "fatigue_lo": "You're good to keep going.",
     },
     "hi": {
@@ -59,7 +59,7 @@ T = {
         "rec": "सबसे अच्छा कदम: {t}। इससे रोज़ लगभग {i} मिनट बचेंगे ({ev})।",
         "learned": "{days} दिनों में मैंने {n} घटनाओं से सीखा है। मैं सामान्य नियम से {imp}% बेहतर अनुमान लगाता हूँ।",
         "help": "मुझसे पूछें: 'क्या मैं यह इंस्टा लाइक खोलूं?', 'मैं कब सबसे अच्छा फोकस करता हूँ?', 'कौन सा ऐप ध्यान भटकाता है?'",
-        "rec_words": {"allow": "आने दें", "delay": "अगले चेकपॉइंट तक रोकें", "summarize": "डाइजेस्ट में डालें"},
+        "rec_words": {"allow": "आने दें", "delay": "अगले चेकपॉइंट तक रोकें", "summarize": "डाइजेस्ट में डालें", "ask": "खुद तय करें: इस पल के लिए अभी पर्याप्त डेटा नहीं है"},
         "fatigue_hi": "अगले ब्लॉक से पहले 10 मिनट टहल लें।", "fatigue_lo": "आप ठीक हैं, जारी रखें।",
     },
     "mr": {
@@ -71,7 +71,7 @@ T = {
         "rec": "सर्वोत्तम पाऊल: {t}. यामुळे रोज सुमारे {i} मिनिटे वाचतील ({ev}).",
         "learned": "{days} दिवसांत मी {n} घटनांमधून शिकलो. सामान्य नियमापेक्षा मी {imp}% अचूक आहे.",
         "help": "मला विचारा: 'ही इन्स्टा सूचना उघडू का?', 'माझा फोकस केव्हा सर्वोत्तम असतो?', 'कोणते ॲप लक्ष विचलित करते?'",
-        "rec_words": {"allow": "येऊ द्या", "delay": "पुढच्या चेकपॉइंटपर्यंत थांबवा", "summarize": "डायजेस्टमध्ये टाका"},
+        "rec_words": {"allow": "येऊ द्या", "delay": "पुढच्या चेकपॉइंटपर्यंत थांबवा", "summarize": "डायजेस्टमध्ये टाका", "ask": "तुम्हीच ठरवा: या क्षणासाठी अजून पुरेसा डेटा नाही"},
         "fatigue_hi": "पुढच्या ब्लॉकआधी 10 मिनिटे चाला.", "fatigue_lo": "तुम्ही ठीक आहात, चालू ठेवा.",
     },
     "es": {
@@ -83,7 +83,7 @@ T = {
         "rec": "Mejor movimiento: {t}. Debería ahorrarte unos {i} min al día ({ev}).",
         "learned": "En {days} días aprendí de {n} eventos. Predigo un {imp}% mejor que una regla genérica.",
         "help": "Pregúntame: '¿Debería abrir este me gusta de Instagram?', '¿Cuándo me concentro mejor?', '¿Qué app me distrae más?'",
-        "rec_words": {"allow": "déjalo pasar", "delay": "retenlo hasta tu próximo punto de control", "summarize": "añádelo al resumen"},
+        "rec_words": {"allow": "déjalo pasar", "delay": "retenlo hasta tu próximo punto de control", "summarize": "añádelo al resumen", "ask": "decide tú: aún no hay suficientes datos para este momento"},
         "fatigue_hi": "Camina 10 minutos antes del siguiente bloque.", "fatigue_lo": "Vas bien, sigue.",
     },
 }

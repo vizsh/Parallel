@@ -11,6 +11,7 @@ import FuturesRain from '@/components/FuturesRain'
 import { GuessGate, GuessResult } from '@/components/GuessGame'
 import Universes from '@/components/Universes'
 import { addCard, badgeFor } from '@/lib/cards'
+import { queueFutureText } from '@/lib/futureTexts'
 import { Panel, SERIES } from '@/components/charts'
 import { api, CATEGORIES, fmtHour, type Sim } from '@/lib/api'
 import { useAuth } from '@/lib/auth'
@@ -100,6 +101,8 @@ export default function Simulator() {
     // allowing earns the Universe A card, holding or digesting earns Universe B's
     const side = choice === 'allow' ? 'a' : 'b'
     setCard({ side, isNew: addCard(user?.id, badgeFor(cat, side).id) }); setBinder((b) => b + 1)
+    // future you texts back when the twin says this ping would have wrapped up
+    queueFutureText(user?.id, { side, category: cat, app: meta?.app ?? 'that app', minutes: side === 'a' ? sim.allow.cost_expected : Math.max(sim.delay.cost_expected, 1), task: sim.context.task })
     toast(`+${r.xp_gained} XP · ${r.reasons[r.reasons.length - 1].replace(/^\+\d+ /, '')}`, 'calm', quiet)
   }
 

@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { AnimatePresence, motion } from 'motion/react'
-import { Bell, Clock, Copy, Inbox as InboxIcon, Layers, List, MessageSquareReply, Pause, Play, ShieldCheck } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { Bell, Clock, MonitorPlay, Copy, Inbox as InboxIcon, Layers, List, MessageSquareReply, Pause, Play, ShieldCheck } from 'lucide-react'
 import { PageHead } from './AppShell'
 import { Panel } from '@/components/charts'
 import FuturePeek from '@/components/FuturePeek'
@@ -9,6 +10,7 @@ import HeldJar from '@/components/HeldJar'
 import Receipt from '@/components/Receipt'
 import SwipeDeck, { type Swipe } from '@/components/SwipeDeck'
 import { api } from '@/lib/api'
+import { queueFutureText } from '@/lib/futureTexts'
 import { useAuth } from '@/lib/auth'
 import { toast, useApi } from '@/lib/hooks'
 import { useSeo } from '@/lib/seo'
@@ -48,6 +50,7 @@ export default function Inbox() {
     const r = await api<{ xp_gained: number; stats: { xp: number } }>('/interventions', { body: { category: it.category, choice, predicted_cost: it.cost, saved: choice === 'allow' ? 0 : it.saved, text: it.text } })
     setDone((d) => ({ ...d, [it.id]: choice }))
     setXpBy((x) => ({ ...x, [it.id]: r.xp_gained }))
+    queueFutureText(user?.id, { side: choice === 'allow' ? 'a' : 'b', category: it.category, app: it.app, minutes: choice === 'allow' ? it.cost : Math.max(it.cost - it.saved, 1) })
     if (user) setUser({ ...user, xp: r.stats.xp })
     toast(choice === 'allow' ? `Opened on purpose · +${r.xp_gained} XP` : `Queued · +${r.xp_gained} XP`, choice === 'allow' ? 'chaos' : 'calm', quiet)
     digest.reload()
@@ -83,6 +86,7 @@ export default function Inbox() {
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg small ${mode === m ? 'bg-surface-2 text-ink' : 'text-muted'}`}><I size={15} aria-hidden /> {l}</button>
               ))}
             </div>
+            <Link to="/demo" className="btn btn-ghost"><MonitorPlay size={18} /> See it on a phone</Link>
             <button onClick={acceptAll} disabled={!pending.length} className="btn"><ShieldCheck size={18} /> Accept all twin calls</button>
           </div>} />
       <div className="grid gap-3 xl:grid-cols-12">

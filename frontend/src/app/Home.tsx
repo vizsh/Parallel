@@ -10,6 +10,7 @@ import { api, fmtHour } from '@/lib/api'
 import { useAuth } from '@/lib/auth'
 import { toast, useApi } from '@/lib/hooks'
 import { useSeo } from '@/lib/seo'
+import FutureTexts from '@/components/FutureTexts'
 import { CheckMoments, DidItMatter, Doppelganger, EnergyCheckin, KnowledgeMeter, TimeMachine } from './TwinInputs'
 
 const TwinMini = lazy(() => import('@/landing/TwinMini'))
@@ -116,6 +117,8 @@ export default function Home() {
         <KnowledgeMeter k={knows.data} />
         <CheckMoments />
       </div>
+
+      <div className="mt-3"><FutureTexts uid={user?.id} /></div>
 
       {/* Budget, reservation, checkpoint */}
       <div className="mt-3 grid gap-3 lg:grid-cols-3">

@@ -1,54 +1,36 @@
-# React + TypeScript + Vite
+# Parallel frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+React 19 + Vite 6 + TypeScript + Tailwind v4, shipped as a website, a PWA and Capacitor Android/iOS apps. Project overview: [../README.md](../README.md). Full context and conventions: [../docs/CONTEXT.md](../docs/CONTEXT.md).
 
-Currently, two official plugins are available:
+## Commands
+| Command | What it does |
+|---|---|
+| `npm install` | install dependencies |
+| `npm run dev -- --port 5180` | dev server (add `--host` to reach it from a phone on the same Wi-Fi) |
+| `npx tsc -b` | type-check |
+| `npx eslint <files>` | lint the files you changed (some older files have pre-existing lint errors) |
+| `npm run build` | production build into `dist/` |
+| `npm run android` / `npm run ios` | build, sync and open the native project (needs Android Studio / Xcode) |
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Configuration
+- `VITE_API_URL`: where the FastAPI backend lives (default `http://localhost:8787`). Put it in `.env.development.local` or `.env.production.local` (both gitignored). On a phone, `localhost` is the phone itself: use your laptop's LAN IP or a deployed URL.
 
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+## Layout
+```
+src/
+├─ App.tsx              routes (public: /, /signin, /signup, /privacy, /contact, /demo · app: /app/*)
+├─ app/                 the signed-in pages (Today = Home.tsx, Multiverse = Simulator.tsx, Inbox, …)
+├─ pages/               Landing, Auth, Onboarding, Demo, Privacy, Contact, NotFound
+├─ landing/             the 3D scroll-driven landing (R3F + GLSL)
+├─ components/          UI pieces, including the phone-first layer:
+│                         SwipeDeck · HeldJar · ForkDrag · EnergyBattery · GuessGame · FuturesRain · Dominoes
+│                         BadgeCard · Receipt · FuturePeek · ComicArt · FutureTexts · PhoneDemo
+└─ lib/                 api · auth · hooks (toasts, useApi) · feel (haptics) · native (Capacitor)
+                        universes (comic scripts) · cards · future (comic builder) · futureTexts · i18n · seo
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
-```
+## Rules of thumb
+- Every gesture has a button/keyboard equivalent; every animation has a `useReducedMotion()` path.
+- Use `feel(kind)` for haptics; pass `quiet = true` to `toast()` when the component already buzzed.
+- Components files export components only; shared constants, types and hooks go in `src/lib/`.
+- Colour meaning: `chaos` (orange) = Universe A / cost; `calm` (mint) = Universe B / protected.

@@ -9,6 +9,7 @@ const Onboarding = lazy(() => import('./pages/Onboarding'))
 const Privacy = lazy(() => import('./pages/Privacy'))
 const Contact = lazy(() => import('./pages/Contact'))
 const NotFound = lazy(() => import('./pages/NotFound'))
+const Demo = lazy(() => import('./pages/Demo'))
 const AppShell = lazy(() => import('./app/AppShell'))
 const Home = lazy(() => import('./app/Home'))
 const Simulator = lazy(() => import('./app/Simulator'))
@@ -48,6 +49,7 @@ export default function App() {
         <Route path="/dashboard" element={<Navigate to="/app" replace />} />
         <Route path="/privacy" element={<Privacy />} />
         <Route path="/contact" element={<Contact />} />
+        <Route path="/demo" element={<Demo />} />
         <Route path="/onboarding" element={<Protected><Onboarding /></Protected>} />
         <Route path="/app" element={<Protected><AppShell /></Protected>}>
           <Route index element={<Home />} />

@@ -7,6 +7,7 @@ import { LangSwitch, Wordmark } from '@/components/Brand'
 import VoiceCoachFab from '@/components/VoiceCoach'
 import { useAuth } from '@/lib/auth'
 import { useToasts } from '@/lib/hooks'
+import { useFutureTextPings } from '@/lib/futureTexts'
 
 export const NAV = [
   { to: '/app', key: 'home', icon: LayoutDashboard, end: true },
@@ -43,6 +44,7 @@ function Toasts() {
 export default function AppShell() {
   const { t } = useTranslation()
   const { user, signOut } = useAuth()
+  useFutureTextPings(user?.id)
   const nav = useNavigate()
   const loc = useLocation()
   const level = 1 + Math.floor((user?.xp ?? 0) / 100)
