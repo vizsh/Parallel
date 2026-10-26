@@ -12,6 +12,7 @@ import { toast, useApi } from '@/lib/hooks'
 import { useSeo } from '@/lib/seo'
 import AuraFate, { type Aura, type Fate } from '@/components/AuraFate'
 import FutureTexts from '@/components/FutureTexts'
+import WhatsAppMirror from '@/components/WhatsAppMirror'
 import { CheckMoments, DidItMatter, Doppelganger, EnergyCheckin, KnowledgeMeter, TimeMachine } from './TwinInputs'
 
 const TwinMini = lazy(() => import('@/landing/TwinMini'))
@@ -122,6 +123,11 @@ export default function Home() {
       <div className="mt-3 grid gap-3 md:grid-cols-2">
         <AuraFate aura={game.data?.aura} fate={game.data?.fate} />
         <FutureTexts uid={user?.id} />
+      </div>
+
+      {/* Part 6: WhatsApp Attention Mirror & Gamified Streak */}
+      <div className="mt-3">
+        <WhatsAppMirror />
       </div>
 
       {/* Budget, reservation, checkpoint */}

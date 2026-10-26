@@ -70,13 +70,13 @@ def streak(days_with_intent: set[str], today: date | None = None):
     while True:
         if d.isoformat() in days_with_intent:
             count += 1
+            if count % 7 == 0:
+                freezes = 1
         elif freezes > 0 and count > 0:
             freezes -= 1
             misses += 1
         else:
             break
-        if count and count % 7 == 0:
-            freezes = 1
         d -= timedelta(days=1)
         if count > 365:
             break

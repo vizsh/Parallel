@@ -36,3 +36,7 @@ frontend/ios/DerivedData/
 
 # local design-tool state
 .taste-skill/
+
+# WhatsApp bridge: login credentials and dependencies stay local
+bridge/session/
+bridge/node_modules/

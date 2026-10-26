@@ -234,11 +234,14 @@ def seed_demo_accounts():
             if c.execute("SELECT 1 FROM users WHERE email=?", (email,)).fetchone():
                 continue
             salt = secrets.token_hex(8)
-            cur = c.execute("INSERT INTO users(email,name,pw,salt,persona,goals,vip,created) VALUES(?,?,?,?,?,?,?,?)",
-                            (email, f"Demo {p['label']}", hash_pw(DEMO_PASSWORD, salt), salt, persona,
-                             json.dumps(DEMO_GOALS[persona]), json.dumps(["family", "security", "calendar"]), time.time()))
-            c.execute("INSERT OR REPLACE INTO user_profile(user_id,data,updated) VALUES(?,?,?)",
-                      (cur.lastrowid, json.dumps(demo_routine(persona)), time.time()))
+            try:
+                cur = c.execute("INSERT INTO users(email,name,pw,salt,persona,goals,vip,created) VALUES(?,?,?,?,?,?,?,?)",
+                                (email, f"Demo {p['label']}", hash_pw(DEMO_PASSWORD, salt), salt, persona,
+                                 json.dumps(DEMO_GOALS[persona]), json.dumps(["family", "security", "calendar"]), time.time()))
+                c.execute("INSERT OR REPLACE INTO user_profile(user_id,data,updated) VALUES(?,?,?)",
+                          (cur.lastrowid, json.dumps(demo_routine(persona)), time.time()))
+            except sqlite3.IntegrityError:
+                pass
 
 
 seed_demo_accounts()
@@ -1064,7 +1067,9 @@ def health():
 from .platform_api import audit, router as platform_router  # noqa: E402
 from . import copilot  # noqa: E402
 from .routine_api import router as routine_router  # noqa: E402
+from .whatsapp_api import router as whatsapp_router  # noqa: E402
 
 app.include_router(platform_router)
 app.include_router(routine_router)
 app.include_router(copilot.router)
+app.include_router(whatsapp_router)
