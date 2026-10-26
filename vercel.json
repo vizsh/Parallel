@@ -1,0 +1,15 @@
+{
+  "buildCommand": "cd frontend && npm install && npm run build",
+  "outputDirectory": "frontend/dist",
+  "framework": "vite",
+  "redirects": [
+    { "source": "/login", "destination": "/signin", "permanent": true },
+    { "source": "/register", "destination": "/signup", "permanent": true },
+    { "source": "/dashboard", "destination": "/app", "permanent": true },
+    { "source": "/home", "destination": "/", "permanent": true }
+  ],
+  "rewrites": [
+    { "source": "/api/:match*", "destination": "http://51.79.160.168/api/:match*" },
+    { "source": "/((?!api/).*)", "destination": "/index.html" }
+  ]
+}
