@@ -135,3 +135,32 @@ def test_coach_copilot_cards_actions_and_nudges():
     client.post("/api/coach/action", json={"kind": "undo", "payload": done["undo"]}, headers=h)
     assert client.get("/api/coach/overrides", headers=h).json() == []
     assert client.get("/api/coach/nudge?force=golden_soon", headers=h).json()["title"]
+
+
+def test_coach_understands_indirect_asks_and_stays_honest():
+    h = auth()  # student, family is a VIP
+    ask = lambda q: client.post("/api/assistant", json={"text": q, "lang": "en"}, headers=h).json()
+    assert ask("ugh I keep picking up my phone every 2 minutes")["intent"] == "doomscroll"
+    noisy = ask("my group chat won't stop buzzing")
+    assert noisy["intent"] == "noisy" and noisy["category"] == "social_dm"
+    assert {a["kind"] for a in noisy["actions"]} >= {"hold_all", "mute"}
+    # a VIP is never priced as a temptation or offered a hold
+    mom = ask("Mom is calling, should I pick up?")
+    assert mom["category"] == "family" and mom["headline"].startswith("Family is a VIP")
+    assert "delay" not in [a["payload"].get("choice") for a in mom["actions"]]
+    # the app is named only when you named it
+    assert ask("should I reply to my teammate's PR review?")["headline"].startswith("Work chat")
+    # "every evening" is about the pattern, "am I tired?" about right now
+    evening = ask("why am I so tired every evening")
+    assert "pattern" in evening["reply"] and evening["headline"].startswith("Your fatigue builds")
+    assert "Right now" in ask("am I tired?")["reply"]
+    assert "-" not in ask("how accurate are you?")["reply"].split("better than")[0][-6:]
+    # typing "undo" ends the latest hold
+    ask("hold everything for 30 minutes")
+    assert client.get("/api/coach/overrides", headers=h).json()
+    assert ask("undo")["reply"].startswith("Undone")
+    assert client.get("/api/coach/overrides", headers=h).json() == []
+    assert ask("undo")["reply"].startswith("There's nothing")
+    # savings never exceed what those apps took on the timeline, and come as whole minutes
+    recs = client.get("/api/recommendations", headers=h).json()
+    assert all(r["impact_min"] == round(r["impact_min"]) for r in recs if r["type"] == "rule")

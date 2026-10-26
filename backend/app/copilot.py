@@ -24,7 +24,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
 from . import overrides, routine
-from .assistant import CATEGORY_WORDS, detect_all
+from .assistant import CATEGORY_WORDS, PATTERN, detect_all
 from .main import (CATEGORIES, SAMPLE_TEXT, apply_rules, aura_points, current_user, db, load_profile, stats_for, twin_of,
                    vip_of)
 from .personas import app_for
@@ -472,6 +472,8 @@ def command(u, t, text: str, lang: str) -> dict | None:
         return resp("help", f"I don't know {cmd}. Try /help.")
 
     # plain-language actions
+    if UNDO.fullmatch(low.strip(" .!")):
+        return _undo_latest(u, resp)
     cats = detect_all(raw, CATEGORY_WORDS)
     if re.search(r"\b(hold|pause|block|silence)\b.*\b(everything|all|notifications|pings)\b", low) or re.search(r"\bdo not disturb\b|\bdnd\b", low):
         r = run_action(u, "hold_all", dict(minutes=_minutes(low, 120)))
@@ -521,6 +523,23 @@ def command(u, t, text: str, lang: str) -> dict | None:
     return None
 
 
+UNDO = re.compile(r"undo( (that|it|this|the last one))?|cancel (that|it|the hold|the block)|revert( that)?|never ?mind|"
+                  r"stop (holding|the hold|the focus block|the block)|end (the )?(focus )?block")
+
+
+def _undo_latest(u, resp) -> dict:
+    """Undo the newest temporary rule the coach set, and the focus session it started with it."""
+    with closing(db()) as c:
+        live = overrides.active(c, u["id"])
+        latest = max(live, key=lambda o: o["created"]) if live else None
+        sess = latest and c.execute("SELECT id FROM focus_sessions WHERE user_id=? AND ended IS NULL AND ABS(started-?)<5",
+                                    (u["id"], latest["created"])).fetchone()
+    if not latest:
+        return resp("action", "There's nothing of mine to undo right now: no hold, focus block, mute or night off is running.")
+    run_action(u, "undo", dict(kind="override", id=latest["id"], session=sess["id"] if sess else None))
+    return resp("action", f"Undone: {latest['label']} ended early. Pings follow your usual rules again.", done=dict(ok=True, message="Undone."))
+
+
 def _with_intent(intent: str) -> dict:
     """Let the normal engine answer, forcing an intent (used by /plan, /jar, /why, /aura)."""
     return dict(force_intent=intent)
@@ -551,6 +570,7 @@ HEAD = {
     "receipt_week": ("Your week, wrapped.", "your week, wrapped 🎁"),
     "xray": ("{verdict}", "{verdict}"),
     "now": ("Here's what to do right now.", "ok here's the move."),
+    "noisy": ("Let it pile up and read it in one go.", "let it cook. read it all later."),
 }
 
 
@@ -562,8 +582,14 @@ def enrich(res: dict, u, t, stats: dict, text: str, tone: str = "plain") -> dict
     if intent == "simulate" and cat:
         c = card_ping(u, t, cat)
         cards.append(c)
-        actions += ping_actions(c)
-        facts = dict(app=c["app"], cost=c["cost"])
+        named = c["app"].lower() in text.lower()  # "PR review" is a work-chat ping, not necessarily WhatsApp
+        facts = dict(app=c["app"] if named else c["label"], cost=c["cost"])
+        if cat in vip_of(u):  # the card already says why; don't price it as a temptation or offer to hold it
+            actions += [a for a in ping_actions(c) if a["payload"].get("choice") != "delay"]
+            if res.get("lang", "en") == "en":
+                res["headline"] = f"{c['label'].split(' /')[0]} is a VIP: it always gets through."
+        else:
+            actions += ping_actions(c)
     elif intent == "compare":
         cats = detect_all(text, CATEGORY_WORDS) or [cat or "social_like", "video_reco"]
         if len(cats) < 2:
@@ -589,6 +615,12 @@ def enrich(res: dict, u, t, stats: dict, text: str, tone: str = "plain") -> dict
             if cat_top and cat_top not in vip_of(u):
                 actions.append(dict(label=f"Mute {ev['top_app']} till bedtime", kind="mute", payload=dict(category=cat_top, until="tonight")))
         actions.append(dict(label="Draft “busy till later” reply", kind="draft_reply", payload=dict(category="social_dm")))
+    elif intent == "noisy":
+        k = cat or "social_dm"
+        actions.append(dict(label="Hold everything for an hour", kind="hold_all", payload=dict(minutes=60)))
+        if k not in vip_of(u):
+            actions.append(dict(label=f"Mute {CATEGORIES[k]['label'].lower()}s till tonight", kind="mute", payload=dict(category=k, until="tonight")))
+        actions.append(dict(label="Draft “busy till later” reply", kind="draft_reply", payload=dict(category=k if k in ("social_dm", "work_chat", "family") else "social_dm")))
     elif intent == "held":
         jar = card_jar(u)
         cards.append(jar)
@@ -618,6 +650,9 @@ def enrich(res: dict, u, t, stats: dict, text: str, tone: str = "plain") -> dict
     elif intent in ("sleep", "fatigue"):
         late, ends = late_nights(t)
         facts = dict(late=late, f=round(t.context_now()["fatigue"] * 100))
+        if intent == "fatigue" and PATTERN.search(text) and res.get("lang", "en") == "en":  # the pattern, not this minute
+            onset = fmt_h(t.fingerprint()["fatigue_onset"])
+            res["headline"] = f"Your fatigue builds from {onset} most days." if tone != "genz" else f"the {onset.lower()} slump is real."
         if late:
             cards.append(dict(type="evidence", facts=[dict(label=f"Night {i + 1} ended", value=e) for i, e in enumerate(ends[:5])]))
             p = routine.merge(t.profile)

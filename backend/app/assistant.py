@@ -29,7 +29,11 @@ INTENTS = {
     "deadline": ["exam", "deadline", "test", "assignment", "submission", "due", "परीक्षा", "examen"],
     "best_time": ["best time", "focus best", "when do i focus", "golden", "peak", "productive", "कब", "सबसे अच्छा", "केव्हा", "कधी", "cuándo", "mejor hora"],
     "distraction": ["distract", "biggest", "worst app", "which app", "breaks my", "ध्यान भटक", "कौन सा ऐप", "कोणते ॲप", "distrae", "qué app"],
-    "doomscroll": ["doomscroll", "scrolling", "addicted", "can't stop", "cant stop", "reels", "shorts", "stop using", "quit", "rabbit hole"],
+    "doomscroll": ["doomscroll", "scrolling", "addicted", "can't stop", "cant stop", "reels", "shorts", "stop using", "quit", "rabbit hole",
+                   "picking up my phone", "pick up my phone", "keep checking", "keep opening", "checking my phone", "check my phone",
+                   "put my phone down", "put the phone down", "glued to my phone", "on my phone all"],
+    "noisy": ["won't stop", "wont stop", "keeps buzzing", "keep buzzing", "buzzing", "blowing up", "too many notifications",
+              "so many notifications", "too many pings", "so many pings", "spamming", "nonstop", "non-stop", "flooding", "flooded"],
     "time_lost": ["how much time", "time lost", "wasted", "lose", "lost", "saved", "how many minutes", "this week", "debt"],
     "fatigue": ["so tired", "always tired", "tired", "fatigue", "break", "exhausted", "sleepy", "drained", "थक", "आराम", "ब्रेक", "थकलो", "cansad", "descanso"],
     "sleep": ["sleep", "late night", "bed", "insomnia", "night guard", "midnight", "नींद", "झोप", "dormir"],
@@ -46,7 +50,7 @@ INTENTS = {
 
 CATEGORY_WORDS = {
     "social_like": ["instagram", "insta", "like", "linkedin", "post", "इंस्टा", "लाइक", "me gusta"],
-    "social_dm": ["dm", "discord", "message from", "friend", "दोस्त", "मित्र", "amigo"],
+    "social_dm": ["dm", "discord", "message from", "friend", "group chat", "groupchat", "group", "दोस्त", "मित्र", "amigo"],
     "video_reco": ["youtube", "video", "reel", "यूट्यूब", "वीडियो", "व्हिडिओ"],
     "work_chat": ["slack", "teams", "teammate", "pr", "review", "colleague", "टीम", "compañero"],
     "email": ["email", "mail", "gmail", "newsletter", "ईमेल", "correo"],
@@ -64,11 +68,14 @@ T = {
         "distract": "{app} breaks your focus about {n}x a day, and each break costs ~{c} min. {pct}% of quick checks turn into rabbit holes.",
         "fatigue": "Right now your estimated fatigue is {f}%. Fatigue usually kicks in around {onset}. {advice}",
         "today": "You've made {d} intentional decisions and protected ~{m} minutes so far. Level {lvl}, {xp} XP. {persona}",
-        "rec": "Top move: {t}. It should save about {i} min a day ({ev}).",
+        "rec": "Top move: {t}. It could win back up to about {i} min a day ({ev}).",
         "learned": "In {days} days I've learned from {n} events. I'm {imp}% better than a generic notification rule at predicting what you'll open.",
         "help": "Ask me things like: 'Should I open this Instagram like?', 'When do I focus best?', 'Which app distracts me most?', or 'Am I tired?'",
         "rec_words": {"allow": "let it through", "delay": "hold it until your next checkpoint", "summarize": "add it to your digest", "ask": "decide yourself: there isn't enough evidence for this moment yet"},
         "fatigue_hi": "Take a 10-minute walk before your next block.", "fatigue_lo": "You're good to keep going.",
+        "learned_early": "In {days} days I've learned from {n} events. So far I'm about level with a generic notification rule: most of your history is still the warm-up I generated from your routine. Every reality check you give me pulls me ahead.",
+        "fatigue_pattern": "It's a pattern, not you: on your history fatigue climbs from about {onset} and peaks around {peak} at ~{peak_f}%. {late}Do hard work in {s}-{e} and keep evenings for lighter tasks.",
+        "late_line": "{late} of your last 5 nights also ran past your {bed} bedtime, and short nights show up the next evening. ",
     },
     "hi": {
         "sim": "अगर आप यह {label} अभी खोलते हैं, तो {p}% संभावना है कि आप इसे देखेंगे, जिसकी कीमत आमतौर पर {cost} मिनट होती है (रेंज {lo}-{hi})। रोकने पर ~{d} मिनट। मेरी सलाह: {rec}।",
@@ -76,11 +83,14 @@ T = {
         "distract": "{app} दिन में लगभग {n} बार आपका फोकस तोड़ता है, और हर बार ~{c} मिनट लगते हैं। {pct}% छोटी जाँचें लंबे स्क्रॉल में बदल जाती हैं।",
         "fatigue": "अभी आपकी अनुमानित थकान {f}% है। थकान आमतौर पर {onset} के आसपास शुरू होती है। {advice}",
         "today": "आपने {d} सोच-समझकर फैसले लिए और ~{m} मिनट बचाए। लेवल {lvl}, {xp} XP। {persona}",
-        "rec": "सबसे अच्छा कदम: {t}। इससे रोज़ लगभग {i} मिनट बचेंगे ({ev})।",
+        "rec": "सबसे अच्छा कदम: {t}। इससे रोज़ लगभग {i} मिनट तक बच सकते हैं ({ev})।",
         "learned": "{days} दिनों में मैंने {n} घटनाओं से सीखा है। मैं सामान्य नियम से {imp}% बेहतर अनुमान लगाता हूँ।",
         "help": "मुझसे पूछें: 'क्या मैं यह इंस्टा लाइक खोलूं?', 'मैं कब सबसे अच्छा फोकस करता हूँ?', 'कौन सा ऐप ध्यान भटकाता है?'",
         "rec_words": {"allow": "आने दें", "delay": "अगले चेकपॉइंट तक रोकें", "summarize": "डाइजेस्ट में डालें", "ask": "खुद तय करें: इस पल के लिए अभी पर्याप्त डेटा नहीं है"},
         "fatigue_hi": "अगले ब्लॉक से पहले 10 मिनट टहल लें।", "fatigue_lo": "आप ठीक हैं, जारी रखें।",
+        "learned_early": "{days} दिनों में मैंने {n} घटनाओं से सीखा है। अभी मैं सामान्य नियम के लगभग बराबर हूँ: आपका ज़्यादातर इतिहास अभी आपकी दिनचर्या से बनाया गया शुरुआती डेटा है। हर रियलिटी चेक से मैं बेहतर होता हूँ।",
+        "fatigue_pattern": "यह एक पैटर्न है, आपकी गलती नहीं: थकान लगभग {onset} से बढ़ती है और {peak} के आसपास ~{peak_f}% पर होती है। {late}कठिन काम {s}-{e} में करें, शाम को हल्के काम रखें।",
+        "late_line": "पिछली 5 में से {late} रातें {bed} के सोने के समय के बाद तक चलीं। ",
     },
     "mr": {
         "sim": "तुम्ही ही {label} आत्ता उघडली तर {p}% शक्यता आहे की तुम्ही ती पाहाल, साधारण {cost} मिनिटे जातील ({lo}-{hi})। थांबवल्यास ~{d} मिनिटे. माझा सल्ला: {rec}.",
@@ -88,11 +98,14 @@ T = {
         "distract": "{app} दिवसातून सुमारे {n} वेळा तुमचा फोकस तोडते, प्रत्येक वेळी ~{c} मिनिटे. {pct}% छोट्या तपासण्या लांब स्क्रोलमध्ये बदलतात.",
         "fatigue": "सध्या तुमचा अंदाजे थकवा {f}% आहे. थकवा साधारण {onset} च्या आसपास सुरू होतो. {advice}",
         "today": "तुम्ही {d} विचारपूर्वक निर्णय घेतले आणि ~{m} मिनिटे वाचवली. लेव्हल {lvl}, {xp} XP. {persona}",
-        "rec": "सर्वोत्तम पाऊल: {t}. यामुळे रोज सुमारे {i} मिनिटे वाचतील ({ev}).",
+        "rec": "सर्वोत्तम पाऊल: {t}. यामुळे रोज सुमारे {i} मिनिटांपर्यंत वाचू शकतात ({ev}).",
         "learned": "{days} दिवसांत मी {n} घटनांमधून शिकलो. सामान्य नियमापेक्षा मी {imp}% अचूक आहे.",
         "help": "मला विचारा: 'ही इन्स्टा सूचना उघडू का?', 'माझा फोकस केव्हा सर्वोत्तम असतो?', 'कोणते ॲप लक्ष विचलित करते?'",
         "rec_words": {"allow": "येऊ द्या", "delay": "पुढच्या चेकपॉइंटपर्यंत थांबवा", "summarize": "डायजेस्टमध्ये टाका", "ask": "तुम्हीच ठरवा: या क्षणासाठी अजून पुरेसा डेटा नाही"},
         "fatigue_hi": "पुढच्या ब्लॉकआधी 10 मिनिटे चाला.", "fatigue_lo": "तुम्ही ठीक आहात, चालू ठेवा.",
+        "learned_early": "{days} दिवसांत मी {n} घटनांमधून शिकलो. सध्या मी सामान्य नियमाइतकाच अचूक आहे: तुमचा बहुतेक इतिहास अजून तुमच्या दिनक्रमावरून तयार केलेला सुरुवातीचा डेटा आहे. प्रत्येक रिअॅलिटी चेकने मी सुधारतो.",
+        "fatigue_pattern": "हा एक पॅटर्न आहे, तुमचा दोष नाही: थकवा साधारण {onset} पासून वाढतो आणि {peak} च्या आसपास ~{peak_f}% असतो. {late}अवघड काम {s}-{e} मध्ये करा, संध्याकाळी हलकी कामे ठेवा.",
+        "late_line": "गेल्या 5 पैकी {late} रात्री {bed} च्या झोपेच्या वेळेनंतर गेल्या. ",
     },
     "es": {
         "sim": "Si abres este {label} ahora, hay un {p}% de probabilidad de que lo mires, con un coste típico de {cost} min (rango {lo}-{hi}). Retenido, ~{d} min. Mi consejo: {rec}.",
@@ -100,11 +113,14 @@ T = {
         "distract": "{app} rompe tu foco unas {n} veces al día y cada vez cuesta ~{c} min. El {pct}% de los vistazos se vuelven madrigueras.",
         "fatigue": "Tu fatiga estimada ahora es {f}%. Suele empezar alrededor de las {onset}. {advice}",
         "today": "Has tomado {d} decisiones intencionales y protegido ~{m} minutos. Nivel {lvl}, {xp} XP. {persona}",
-        "rec": "Mejor movimiento: {t}. Debería ahorrarte unos {i} min al día ({ev}).",
+        "rec": "Mejor movimiento: {t}. Podría devolverte hasta unos {i} min al día ({ev}).",
         "learned": "En {days} días aprendí de {n} eventos. Predigo un {imp}% mejor que una regla genérica.",
         "help": "Pregúntame: '¿Debería abrir este me gusta de Instagram?', '¿Cuándo me concentro mejor?', '¿Qué app me distrae más?'",
         "rec_words": {"allow": "déjalo pasar", "delay": "retenlo hasta tu próximo punto de control", "summarize": "añádelo al resumen", "ask": "decide tú: aún no hay suficientes datos para este momento"},
         "fatigue_hi": "Camina 10 minutos antes del siguiente bloque.", "fatigue_lo": "Vas bien, sigue.",
+        "learned_early": "En {days} días aprendí de {n} eventos. Por ahora estoy al nivel de una regla genérica: casi todo tu historial es aún el calentamiento que generé a partir de tu rutina. Cada comprobación real que me das me hace mejorar.",
+        "fatigue_pattern": "Es un patrón, no eres tú: tu fatiga sube desde las {onset} y llega a ~{peak_f}% hacia las {peak}. {late}Haz lo difícil entre {s} y {e} y deja las tardes para tareas ligeras.",
+        "late_line": "{late} de tus últimas 5 noches pasaron de tu hora de dormir ({bed}). ",
     },
 }
 
@@ -120,6 +136,11 @@ PERSONA_LINE = {
 }
 
 
+
+
+# "every evening", "always tired": a question about the pattern rather than about right now
+PATTERN = re.compile(r"\b(every|always|usually|each|evenings?|nights?|afternoons?|after (lunch|dinner|class|work)|daily|so often)\b", re.I)
+EARLY_EDGE = 3  # points of Brier improvement below which "level with a generic rule" is the honest reading
 
 
 def detect(text: str, table: dict) -> str | None:
@@ -209,6 +230,7 @@ FOLLOW = {
     "fatigue": ["What should I do right now?", "When do I focus best?"],
     "sleep": ["How much time did I lose this week?", "Plan tomorrow"],
     "stress": ["What should I do right now?", "What's waiting in my jar?"],
+    "noisy": ["What's waiting in my jar?", "Draft a reply for later", "Plan my evening"],
     "aura": ["How much time did I lose this week?", "What do you recommend?"],
     "held": ["Should I open this Instagram like?", "Plan my evening"],
     "privacy": ["How does this work?", "What do you know about me?"],
@@ -378,8 +400,19 @@ def answer(twin: Twin, text: str, lang: str, persona: str, stats: dict, vip: set
     elif intent == "fatigue":
         c0 = twin.context_now()
         fp = twin.fingerprint()
-        msg = L["fatigue"].format(f=round(c0["fatigue"] * 100), onset=fmt_h(fp["fatigue_onset"]),
-                                  advice=L["fatigue_hi"] if c0["fatigue"] > 0.5 else L["fatigue_lo"])
+        if PATTERN.search(text):  # "why am I so tired every evening" asks about the pattern, not this minute
+            from . import routine
+            from .copilot import late_nights
+            curve = [(h, f) for h, f in enumerate(fp["fatigue_curve"]) if f is not None]
+            peak_h, peak_f = max(curve, key=lambda hf: hf[1]) if curve else (fp["fatigue_onset"], 0.5)
+            late, _ = late_nights(twin)
+            b = fp["best_window"]
+            msg = L["fatigue_pattern"].format(
+                onset=fmt_h(fp["fatigue_onset"]), peak=fmt_h(peak_h), peak_f=round(peak_f * 100), s=fmt_h(b["start"]), e=fmt_h(b["end"]),
+                late=L["late_line"].format(late=late, bed=fmt_h(float(routine.merge(twin.profile)["bed"]))) if late else "")
+        else:
+            msg = L["fatigue"].format(f=round(c0["fatigue"] * 100), onset=fmt_h(fp["fatigue_onset"]),
+                                      advice=L["fatigue_hi"] if c0["fatigue"] > 0.5 else L["fatigue_lo"])
     elif intent == "sleep":
         f = facts(twin, stats, ctx)
         on = f["now"]["night_guard_on"]
@@ -390,6 +423,19 @@ def answer(twin: Twin, text: str, lang: str, persona: str, stats: dict, vip: set
         msg = ("That sounds like a lot. Let's shrink it: hold everything that isn't from your VIPs for the next hour, so it's just you and one task. "
                f"Your fatigue estimate is ~{round(c0['fatigue'] * 100)}%, so a short walk or some water first might help. "
                "And if it's more than a busy day, talk to someone you trust.")
+    elif intent == "noisy":
+        from .personas import CATEGORIES
+        used_cat = cat or "social_dm"
+        c = next((c for c in twin.categories() if c["category"] == used_cat), None)
+        label = CATEGORIES[used_cat]["label"].lower()
+        lead = (f"{label.capitalize()} pings reach you about {c['per_day']} times a day and you open {round(c['open_rate'] * 100)}% of them. "
+                if c else "")
+        if used_cat in vip:
+            msg = lead + f"You marked {label} as a VIP, so I let them through. Want me to hold them for an hour anyway? Just say so."
+        else:
+            msg = (lead + "You don't have to answer each one. I can hold them until your next check moment and hand you the whole "
+                   "thread in one go, or send them to your digest until tonight.")
+
     elif intent == "aura":
         au, fa = stats.get("aura", {}), stats.get("fate", {})
         msg = (f"Aura this week: {au.get('week', 0)} ({au.get('tier', 'Side quest')}). {au.get('line', '')} "
@@ -406,21 +452,26 @@ def answer(twin: Twin, text: str, lang: str, persona: str, stats: dict, vip: set
                "You can pause learning, export everything or delete it all in Settings.")
     elif intent == "method":
         acc = twin.accuracy()
+        imp = round(acc["improvement"] * 100)
+        versus = (f"On your history I'm {imp}% better than a generic rule" if imp >= EARLY_EDGE else
+                  "On your history so far I'm about level with a generic rule (most of it is still the warm-up I generated from your routine; "
+                  "reality checks pull me ahead)")
         msg = ("For each ping I estimate the chance you open it and the chance it turns into a rabbit hole, simulate 2,000 possible futures, "
-               f"and compare with what holding costs (from randomized holdouts). On your history I'm {round(acc['improvement'] * 100)}% better "
-               f"than a generic rule, and {round(acc['interval_coverage'] * 100)}% of real costs land inside my range.")
+               f"and compare with what holding costs (from randomized holdouts). {versus}, and {round(acc['interval_coverage'] * 100)}% "
+               "of real costs land inside my range.")
         card = dict(type="accuracy")
     elif intent == "rules":
         msg = ("Your rules always win. In Settings or the inbox you can mark people and categories as VIP (always through), "
                "send a category to the digest, or mute it. VIPs I never hold.")
     elif intent == "recommend":
         r = twin.recommendations(vip)[0]
-        msg = L["rec"].format(t=r["title"], i=r["impact_min"], ev=r["evidence"])
+        msg = L["rec"].format(t=r["title"], i=round(r["impact_min"]), ev=r["evidence"])
         card = dict(type="recommendations")
     elif intent == "learned":
         fp = twin.fingerprint()
         acc = twin.accuracy()
-        msg = L["learned"].format(days=fp["days_learned"], n=fp["events_learned"], imp=round(acc["improvement"] * 100))
+        imp = round(acc["improvement"] * 100)
+        msg = L["learned" if imp >= EARLY_EDGE else "learned_early"].format(days=fp["days_learned"], n=fp["events_learned"], imp=imp)
         card = dict(type="accuracy")
     elif intent == "today":
         msg = L["today"].format(d=stats["decisions"], m=stats["minutes_saved"], lvl=stats["level"], xp=stats["xp"], persona="")

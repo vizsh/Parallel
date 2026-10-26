@@ -309,6 +309,25 @@ class Twin:
         return sorted(out, key=lambda a: -a["fragmentation"])
 
     @memo
+    @memo
+    def distraction_minutes_by_category(self) -> dict:
+        """Minutes a day your timeline spent distracted, split across the ping categories that led into each app."""
+        days = len({s["day"] for s in self.segments}) or 1
+        dist = defaultdict(float)
+        for s in self.segments:
+            if s["kind"] == "distraction":
+                dist[s["app"]] += (s["end"] - s["start"]) * 60
+        led = defaultdict(lambda: defaultdict(float))  # app -> category -> minutes of ping cost that led there
+        for n in self.notifs:
+            if n["opened"] and n["followed_app"]:
+                led[n["followed_app"]][n["category"]] += n["cost_min"]
+        out = defaultdict(float)
+        for app, by_cat in led.items():
+            total = sum(by_cat.values()) or 1
+            for k, v in by_cat.items():
+                out[k] += dist.get(app, 0.0) / days * v / total
+        return dict(out)
+
     def categories(self):
         out = []
         for k in CATEGORY_KEYS:
@@ -492,15 +511,19 @@ class Twin:
         vip = vip or set()
         recs = []
         days = max(1, len(self.days) - 1)
+        timeline = self.distraction_minutes_by_category()
         for c in self.categories():
             if c["category"] in vip or c["uplift"] is None or c["importance"] >= 0.75:
                 continue
-            per_day = c["per_day"] * c["uplift"] * c["open_rate"]
+            # cost_allow already averages over pings you didn't open, so the uplift is minutes per ping that arrives.
+            # Rabbit holes overlap (a ping that lands mid-scroll adds little), so the saving can't exceed the time
+            # those apps actually took on your timeline.
+            per_day = min(c["per_day"] * c["uplift"], timeline.get(c["category"], 0.0))
             if per_day < 3:
                 continue
             recs.append(dict(id=f"batch:{c['category']}", type="rule", title=f"Batch '{c['label']}' into a digest",
                              detail=f"{c['per_day']}/day. Each one you see costs ~{c['cost_allow']} min; held back, ~{c['cost_delay']} min.",
-                             impact_min=round(per_day, 1), evidence=f"{c['n_holdouts']} randomized holdouts", confidence=round(min(0.95, 0.4 + c['n_holdouts'] / 50), 2)))
+                             impact_min=float(round(per_day)), evidence=f"{c['n_holdouts']} randomized holdouts", confidence=round(min(0.95, 0.4 + c['n_holdouts'] / 50), 2)))
         fp = self.fingerprint()
         b = fp["best_window"]
         dl = routine.deadline_pressure(self.profile) if self.profile else None

@@ -50,6 +50,7 @@ export function useCoach() {
   const { user } = useAuth()
   const recRef = useRef<any>(null)
   const reqRef = useRef<AbortController | null>(null)
+  const mounted = useRef(true)
   const supported = typeof window !== 'undefined' && !!((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition)
   const speechLang = LANGS.find((l) => l.code === lang)?.speech ?? 'en-IN'
 
@@ -83,17 +84,18 @@ export function useCoach() {
     reqRef.current?.abort()
     const ctrl = new AbortController()
     reqRef.current = ctrl
-    const timer = window.setTimeout(() => ctrl.abort(), 25000)
+    let timedOut = false
+    const timer = window.setTimeout(() => { timedOut = true; ctrl.abort() }, 25000)
     setMsgs((m) => [...m, { role: 'user', text }])
     setBusy(true)
     try {
       const r = await api<Reply>('/assistant', { body: { text, lang, tone }, signal: ctrl.signal })
       setMsgs((m) => [...m, { role: 'twin', text: r.reply, card: r.card, suggest: r.suggest, source: r.source, headline: r.headline, cards: r.cards, actions: r.actions, done: r.done }])
       for (const a of r.actions ?? []) if (a.auto) runAction(a, user?.id).catch(() => {}) // e.g. a reminder you asked for
-      if (speak) speakText([r.headline, r.reply].filter(Boolean).join('. '), speechLang)
+      if (speak && mounted.current) speakText([r.headline, r.reply].filter(Boolean).join('. '), speechLang)
     } catch (e) {
-      if (ctrl.signal.aborted && reqRef.current !== ctrl) return // superseded by a newer question
-      setMsgs((m) => [...m, { role: 'twin', text: ctrl.signal.aborted ? 'That took too long. Try again in a moment.' : (e as Error).message }])
+      if (ctrl.signal.aborted && !timedOut) return // superseded by a newer question
+      setMsgs((m) => [...m, { role: 'twin', text: timedOut ? 'That took too long. Try again in a moment.' : (e as Error).message }])
     } finally {
       window.clearTimeout(timer)
       if (reqRef.current === ctrl) { setBusy(false); reqRef.current = null }
@@ -165,7 +167,12 @@ export function useCoach() {
     startRecognizer()
   }
 
-  useEffect(() => () => { if (sessionRef.current) sessionRef.current.active = false; recRef.current?.abort?.(); reqRef.current?.abort(); stopSpeech() }, [])
+  // A question in flight is left to finish: React's dev StrictMode unmounts and remounts once, which
+  // used to abort a question asked on mount (the ?q= deep link) and report it as a timeout.
+  useEffect(() => {
+    mounted.current = true
+    return () => { mounted.current = false; if (sessionRef.current) sessionRef.current.active = false; recRef.current?.abort?.(); stopSpeech() }
+  }, [])
 
   return { msgs, busy, ask, listen, listening, interim, supported, speak, setSpeak, speaking, stop: stopSpeech, lang, tone, setTone, attach, uid: user?.id }
 }
