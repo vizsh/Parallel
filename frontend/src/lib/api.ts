@@ -1,4 +1,13 @@
-const BASE = import.meta.env.VITE_API_URL ?? ''
+function getApiBase(): string {
+  const envUrl = (import.meta.env.VITE_API_URL ?? '').trim()
+  // When running over HTTPS (e.g. on Vercel), never use http:// directly:
+  // modern browsers block insecure HTTP calls with 'Failed to fetch' (Mixed Content).
+  // Falling back to '' uses relative /api which Vercel proxies server-side to the backend!
+  if (typeof window !== 'undefined' && window.location.protocol === 'https:' && envUrl.startsWith('http://')) {
+    return ''
+  }
+  return envUrl
+}
 
 export function getToken() {
   try { return localStorage.getItem('parallel.token') } catch { return null }
@@ -11,7 +20,8 @@ export async function api<T = any>(path: string, opts: { method?: string; body?:
   const headers: Record<string, string> = { 'Content-Type': 'application/json' }
   const tok = getToken()
   if (tok) headers.Authorization = `Bearer ${tok}`
-  const res = await fetch(`${BASE}/api${path}`, {
+  const base = getApiBase()
+  const res = await fetch(`${base}/api${path}`, {
     method: opts.method ?? (opts.body ? 'POST' : 'GET'),
     headers,
     body: opts.body ? JSON.stringify(opts.body) : undefined,
