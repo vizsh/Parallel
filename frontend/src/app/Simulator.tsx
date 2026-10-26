@@ -73,7 +73,9 @@ export default function Simulator() {
   const [actual, setActual] = useState('')
   const [verdict, setVerdict] = useState<Verdict>(null)
   // Guess-before-reveal: on by default, remembered per device.
-  const [guessFirst, setGuessFirst] = useState(() => { try { return localStorage.getItem('parallel.guessFirst') !== 'off' } catch { return true } })
+  // Off by default: "Fork the future" shows both futures at once. With it on, every fork hid the result behind a
+  // question, which read as the button doing nothing.
+  const [guessFirst, setGuessFirst] = useState(() => { try { return localStorage.getItem('parallel.guessFirst') === 'on' } catch { return false } })
   const [guess, setGuess] = useState<number | null>(null)
   const [skipped, setSkipped] = useState(false)
   const [card, setCard] = useState<{ side: 'a' | 'b'; isNew: boolean } | null>(null)
@@ -174,6 +176,9 @@ export default function Simulator() {
               </div>
             </fieldset>
             <button onClick={fork} disabled={busy} className="btn justify-center"><GitFork size={18} /> {busy ? 'Simulating 2,000 futures…' : 'Fork the future'}</button>
+            <label className="small flex items-center gap-2 text-muted -mt-1">
+              <input type="checkbox" checked={guessFirst} onChange={(e) => setGuessMode(e.target.checked)} /> Guess the cost before the reveal
+            </label>
           </div>
         </Panel>
 
@@ -313,8 +318,7 @@ export default function Simulator() {
             </Panel>
           </div>
 
-          <Panel className="mt-3" title="Your card binder" sub="Collect the archetype of every universe you step into."
-            action={<label className="small flex items-center gap-2 text-muted"><input type="checkbox" checked={guessFirst} onChange={(e) => setGuessMode(e.target.checked)} /> Guess before reveal</label>}>
+          <Panel className="mt-3" title="Your card binder" sub="Collect the archetype of every universe you step into.">
             <CardBinder uid={user?.id} refresh={binder} />
           </Panel>
         </>
