@@ -106,21 +106,32 @@ def hash_pw(pw: str, salt: str) -> str:
     return hashlib.pbkdf2_hmac("sha256", pw.encode(), salt.encode(), 120_000).hex()
 
 
+def account_tag(row) -> str:
+    """Ties a token to one account row. A token from another database (another copy of Parallel, a reset dev
+    database) that happens to carry the same user id must not sign in as whoever holds that id here."""
+    return hashlib.sha256(f"{row['id']}|{row['email']}|{row['salt'] or ''}|{row['created']}".encode()).hexdigest()[:16]
+
+
 def token_for(uid: int) -> str:
-    return jwt.encode({"sub": str(uid), "exp": int(time.time()) + 7 * 86400}, SECRET, algorithm="HS256")
+    with closing(db()) as c:
+        row = c.execute("SELECT id, email, salt, created FROM users WHERE id=?", (uid,)).fetchone()
+    return jwt.encode({"sub": str(uid), "acct": account_tag(row), "exp": int(time.time()) + 7 * 86400}, SECRET, algorithm="HS256")
 
 
 def current_user(cred: HTTPAuthorizationCredentials | None = Depends(bearer)):
     if not cred:
         raise HTTPException(401, "Not signed in")
     try:
-        uid = int(jwt.decode(cred.credentials, SECRET, algorithms=["HS256"])["sub"])
+        claims = jwt.decode(cred.credentials, SECRET, algorithms=["HS256"])
+        uid = int(claims["sub"])
     except Exception:
         raise HTTPException(401, "Session expired")
     with closing(db()) as c:
         row = c.execute("SELECT * FROM users WHERE id=?", (uid,)).fetchone()
     if not row:
         raise HTTPException(401, "Unknown user")
+    if claims.get("acct") != account_tag(row):
+        raise HTTPException(401, "Session expired, please sign in again")
     return dict(row)
 
 

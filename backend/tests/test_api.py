@@ -174,3 +174,15 @@ def test_audit_chain_survives_concurrent_forks():
         codes = list(ex.map(lambda _: client.post("/api/simulations", json=body, headers=h).status_code, range(12)))
     assert codes == [200] * 12
     assert client.get("/api/audit", headers=h).json()["chain_valid"]
+
+
+def test_token_from_another_database_is_rejected():
+    import jwt as pyjwt
+    from app.main import SECRET
+    h = auth()
+    me = client.get("/api/me", headers=h).json()
+    # a token for the same id, signed with the same secret, but issued by a different database
+    foreign = pyjwt.encode({"sub": str(me["id"]), "exp": 9_999_999_999}, SECRET, algorithm="HS256")
+    r = client.get("/api/me", headers={"Authorization": f"Bearer {foreign}"})
+    assert r.status_code == 401
+    assert client.get("/api/me", headers=h).status_code == 200
