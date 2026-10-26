@@ -194,7 +194,7 @@ On Windows: `powershell -ExecutionPolicy Bypass -File .\run.ps1`. Then open **ht
 |---|---|
 | student@parallel.app · developer@parallel.app · creator@parallel.app · professional@parallel.app | `parallel123` |
 
-**On your phone (same Wi-Fi, no installs):** start the API with `--host 0.0.0.0`, start Vite with `--host`, set `VITE_API_URL=http://<laptop-LAN-IP>:8787` in `frontend/.env.development.local`, open `http://<laptop-LAN-IP>:5180` and use *Add to Home screen*. Allow Python and Node through the firewall on private networks if the phone can't connect. Full instructions: **[RUN.md](RUN.md)** and **[docs/MOBILE.md](docs/MOBILE.md)**.
+**On your phone (same Wi-Fi, no installs):** start Vite with `--host` (`npm run dev -- --host`), open `http://<laptop-LAN-IP>:5180` and use *Add to Home screen*. The dev server forwards `/api` to the API on your laptop, so don't set `VITE_API_URL` for this: a hard-coded IP or port breaks every API call as soon as either changes. Allow Python and Node through the firewall on private networks if the phone can't connect. Full instructions: **[RUN.md](RUN.md)** and **[docs/MOBILE.md](docs/MOBILE.md)**.
 
 **APK:** needs the Android SDK (it comes with Android Studio): `cd frontend && npm run android`, then *Build → Build APK(s)*. Java alone isn't enough, because Gradle needs Android's platform jars and build tools to compile and package the native shell.
 

@@ -141,6 +141,7 @@ See [docs/MOBILE.md](docs/MOBILE.md). In short, run `cd frontend && npm run andr
 | Problem | Fix |
 |---|---|
 | `Address already in use` on 8787 or 5180 | Another app is using the port. Start on another one (e.g. `--port 8790`) and update `server.proxy` in `frontend/vite.config.ts`, or stop the other app. |
+| The Multiverse forks but later steps are missing (no drag-to-fork, doors or cards), or every API call fails | Another copy of Parallel is still serving 5180/8787, or `frontend/.env.development.local` sets a stale `VITE_API_URL`. The run scripts now stop and name the process holding a port; delete `VITE_API_URL` from `.env*.local` for local and phone testing. |
 | Windows: “running scripts is disabled” | Use `run.ps1` with `-ExecutionPolicy Bypass`, or run `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned` once. |
 | `py` not found on Windows | Install Python from python.org and tick “Add python.exe to PATH”, then use `python` instead of `py -3`. |
 | Landing page shows no 3D | Turn on hardware acceleration in your browser and check WebGL2 at https://get.webgl.org/webgl2/. |

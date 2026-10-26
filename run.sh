@@ -3,6 +3,14 @@
 # Usage: ./run.sh            (first run installs everything, builds the dataset and trains models)
 set -e
 ROOT="$(cd "$(dirname "$0")" && pwd)"
+# Another copy of Parallel on these ports would silently answer instead of this one.
+for port in 8787 5180; do
+  if (exec 3<>"/dev/tcp/127.0.0.1/$port") 2>/dev/null; then
+    echo "Port $port is already in use (another Parallel or dev server?). Stop it and run this script again."
+    command -v lsof >/dev/null && lsof -nP -iTCP:"$port" -sTCP:LISTEN
+    exit 1
+  fi
+done
 cd "$ROOT/backend"
 if [ ! -d .venv ]; then
   echo "→ Creating Python virtual environment"
@@ -22,4 +30,4 @@ trap "kill $API_PID 2>/dev/null" EXIT
 cd "$ROOT/frontend"
 [ -d node_modules ] || npm install
 echo "→ Starting web app on http://localhost:5180"
-npm run dev -- --port 5180
+npm run dev -- --port 5180 --strictPort

@@ -2,6 +2,15 @@
 # Usage:  powershell -ExecutionPolicy Bypass -File .\run.ps1
 $ErrorActionPreference = "Stop"
 $Root = Split-Path -Parent $MyInvocation.MyCommand.Path
+# Another copy of Parallel on these ports would silently answer instead of this one.
+foreach ($port in 8787, 5180) {
+  $busy = Get-NetTCPConnection -LocalPort $port -State Listen -ErrorAction SilentlyContinue | Select-Object -First 1
+  if ($busy) {
+    $cmd = (Get-CimInstance Win32_Process -Filter "ProcessId=$($busy.OwningProcess)").CommandLine
+    Write-Host "Port $port is already in use by process $($busy.OwningProcess):`n  $cmd`nStop it (Stop-Process -Id $($busy.OwningProcess)) and run this script again."
+    exit 1
+  }
+}
 Set-Location "$Root\backend"
 if (-not (Test-Path ".venv")) {
   Write-Host "-> Creating Python virtual environment"
@@ -20,7 +29,7 @@ try {
   Set-Location "$Root\frontend"
   if (-not (Test-Path "node_modules")) { npm install }
   Write-Host "-> Starting web app on http://localhost:5180"
-  npm run dev -- --port 5180
+  npm run dev -- --port 5180 --strictPort
 } finally {
   Stop-Process -Id $api.Id -ErrorAction SilentlyContinue
 }

@@ -46,6 +46,9 @@ with closing(db()) as c:
 def audit(uid: int | None, kind: str, payload: dict):
     """Tamper-evident log: every row's hash covers the previous row's hash."""
     with closing(db()) as c, c:
+        # Take the write lock before reading the last hash: two forks at once used to both chain onto the same
+        # entry, which breaks the chain for everyone.
+        c.execute("BEGIN IMMEDIATE")
         prev = c.execute("SELECT hash FROM audit_log ORDER BY id DESC LIMIT 1").fetchone()
         prev_hash = prev["hash"] if prev else "genesis"
         ts = time.time()

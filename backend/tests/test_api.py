@@ -164,3 +164,13 @@ def test_coach_understands_indirect_asks_and_stays_honest():
     # savings never exceed what those apps took on the timeline, and come as whole minutes
     recs = client.get("/api/recommendations", headers=h).json()
     assert all(r["impact_min"] == round(r["impact_min"]) for r in recs if r["type"] == "rule")
+
+
+def test_audit_chain_survives_concurrent_forks():
+    from concurrent.futures import ThreadPoolExecutor
+    h = auth()
+    body = {"category": "social_like", "hour": 10.0, "depth": 1.0, "fatigue": 0.3, "minutes_in": 30}
+    with ThreadPoolExecutor(6) as ex:
+        codes = list(ex.map(lambda _: client.post("/api/simulations", json=body, headers=h).status_code, range(12)))
+    assert codes == [200] * 12
+    assert client.get("/api/audit", headers=h).json()["chain_valid"]
