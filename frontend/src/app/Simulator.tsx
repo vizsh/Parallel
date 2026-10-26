@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { AnimatePresence, motion } from 'motion/react'
 import { Bell, CheckCircle2, CircleHelp, DoorOpen, GitFork, Inbox, Pause, Play, Send, Sparkles } from 'lucide-react'
@@ -79,6 +79,9 @@ export default function Simulator() {
   const [card, setCard] = useState<{ side: 'a' | 'b'; isNew: boolean } | null>(null)
   const [binder, setBinder] = useState(0)
   const [peek, setPeek] = useState(false)
+  // Below xl the controls sit above the result, so a fork's answer lands off-screen and the button looks dead.
+  const resultRef = useRef<HTMLDivElement>(null)
+  const revealAfterFork = useRef(false)
   const revealed = !guessFirst || guess !== null || skipped
   function setGuessMode(on: boolean) { setGuessFirst(on); try { localStorage.setItem('parallel.guessFirst', on ? 'on' : 'off') } catch { /* private mode */ } }
   const ov = useApi<{ now: { fatigue: number; hour: number } }>('/twin/overview')
@@ -92,6 +95,20 @@ export default function Simulator() {
     } catch (e) { toast((e as Error).message, 'chaos') } finally { setBusy(false) }
   }
   useEffect(() => { run() }, [cat]) // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (!revealAfterFork.current) return
+    revealAfterFork.current = false
+    const el = resultRef.current
+    if (!el) return
+    const offScreen = () => { const { top } = el.getBoundingClientRect(); return top < 0 || top > window.innerHeight * 0.5 }
+    if (!offScreen()) return undefined
+    const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+    el.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' })
+    // smooth scrolling can be skipped (background tab, some webviews): then just jump there
+    const t = window.setTimeout(() => { if (offScreen()) el.scrollIntoView({ block: 'start' }) }, 900)
+    return () => window.clearTimeout(t)
+  }, [play])
+  function fork() { revealAfterFork.current = true; run() }
 
   async function decide(choice: 'allow' | 'delay' | 'summarize', quiet = false) {
     if (!sim) return
@@ -156,12 +173,12 @@ export default function Simulator() {
                 ))}
               </div>
             </fieldset>
-            <button onClick={run} disabled={busy} className="btn justify-center"><GitFork size={18} /> {busy ? 'Simulating 2,000 futures…' : 'Fork the future'}</button>
+            <button onClick={fork} disabled={busy} className="btn justify-center"><GitFork size={18} /> {busy ? 'Simulating 2,000 futures…' : 'Fork the future'}</button>
           </div>
         </Panel>
 
         {/* Result */}
-        <div className="xl:col-span-8 flex flex-col gap-3">
+        <div ref={resultRef} className="xl:col-span-8 flex flex-col gap-3 scroll-mt-20 lg:scroll-mt-4">
           {sim && !revealed && <GuessGate app={meta.app} text={meta.text} onLock={setGuess} onSkip={() => setSkipped(true)} />}
           {sim && revealed && guess !== null && (
             <GuessResult guess={guess} p10={sim.allow.cost_p10} p50={sim.allow.cost_p50} p90={sim.allow.cost_p90} actual={verdict ? verdict.actual : undefined} />
